@@ -1,1 +1,1 @@
-This website is not accessible via this Github repo at this moment. If you'd like to view the website pleae navigate to the URL: griffinsisk.com 
+Source for [griffinsisk.com](https://www.griffinsisk.com) — a single-page personal site. Pushes to `main` deploy to production via Vercel.
