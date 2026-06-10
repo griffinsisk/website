@@ -22,7 +22,7 @@ Add a public "Ask me anything" agent to griffinsisk.com that answers visitor que
 Static site (unchanged `index.html`) + one serverless function. The repo gains:
 
 - `package.json` — single dependency: `@anthropic-ai/sdk`
-- `api/corpus.md` — the knowledge base (editable without code changes)
+- `api/corpus/*.md` — the knowledge base (editable without code changes)
 - `api/chat.js` — the endpoint
 - `.vercelignore` — excludes `docs/` from deployment
 - `scripts/smoke-test.sh` — curl-based probe questions for behavior regression checks
@@ -31,17 +31,27 @@ Static site (unchanged `index.html`) + one serverless function. The repo gains:
 
 ## Components
 
-### 1. Corpus (`api/corpus.md`)
+### 1. Corpus (`api/corpus/` directory)
 
-Plain markdown, clearly labeled sections the model cites by name:
+One markdown file per topic, number-prefixed to control read order. The function reads the directory, sorts by filename, and concatenates into a single prompt block — multiple files are an editing convenience only; the model always sees the whole corpus.
 
-- `## About` — bio, positioning
-- `## Experience` — career history with detail beyond the site
-- `## Projects: <name>` — one section per project: architecture decisions, failure modes engineered against, outcomes
-- `## Customer Work` — anonymized engagement examples ("a Fortune 500 retailer", never logos unless publicly referenceable)
-- `## Contact & Logistics` — email, locations, links
+```
+api/corpus/
+  00-about.md
+  10-experience.md
+  20-project-costformation-brain.md
+  21-project-telemetry-helper.md
+  22-project-signal-digest.md
+  23-project-contact-sheet.md
+  30-customer-work.md
+  40-contact.md
+```
+
+Each file uses clearly labeled `##` sections the model cites by name. Customer examples are anonymized ("a Fortune 500 retailer", never logos unless publicly referenceable).
 
 Privacy rule: everything in the corpus is effectively public — any visitor can extract it via chat. No phone, address, compensation, or unreleased CloudZero information.
+
+**Architecture decision — full context, no RAG, no router.** The whole corpus ships in every request as a cached prompt prefix. Rationale: at realistic scale (~30-40K tokens even with extensive case studies) the corpus is ~4% of the model's context window; cached input reads cost ~1¢/question; and retrieval or routing layers would introduce the one failure mode this agent is designed against — the model answering without seeing the relevant section (misroute → false "I don't know" or hallucination). Routing patterns (cf. CostFormation Brain) earn their place when context is a scarce shared resource (coding-agent sessions) or the corpus reaches hundreds of thousands of tokens; neither applies to a fresh single-call Q&A. **Revisit trigger:** if the grounding probes in the smoke-test script show degradation as the corpus grows, add routing then, with evidence. This rationale also goes in the corpus itself so the agent can answer "why doesn't this use RAG?"
 
 ### 2. Endpoint (`api/chat.js`)
 
@@ -93,7 +103,7 @@ Browser (Ask panel) → POST `/api/chat` with conversation history → function 
 
 ## Out of scope (YAGNI)
 
-- RAG / vector search (corpus fits in one cached prompt)
+- RAG / vector search / routing layer (see Architecture decision in §1 — corpus fits in one cached prompt; revisit only if grounding probes degrade)
 - Server-side conversation persistence or analytics
 - Auth, CAPTCHA, durable rate limiting (Console spend limit is the backstop; can add Upstash later if abuse materializes)
 - Tool use / web search
