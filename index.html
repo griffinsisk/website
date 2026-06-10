@@ -426,6 +426,21 @@
     }
 
     /* ── HIGHLIGHTS ───────────────────────────── */
+    /* Highlights sub-tabs */
+    .hl-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 36px; }
+    .hl-tab {
+      font-family: var(--cond); font-size: 12px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted); background: none;
+      border: 1px solid var(--dim); border-radius: 2px;
+      padding: 6px 12px; cursor: pointer;
+      transition: color 0.1s, border-color 0.1s;
+    }
+    .hl-tab:hover { color: var(--white); }
+    .hl-tab.active { color: var(--accent); border-color: rgba(0,212,180,0.4); }
+    .hl-group { display: none; }
+    .hl-group.active { display: block; }
+
     .highlight-item {
       margin-bottom: 40px;
       padding-bottom: 40px;
@@ -844,59 +859,141 @@
     <div class="panel" id="panel-highlights">
       <div class="panel-title">Highlights</div>
 
-      <div class="highlight-item">
-        <span class="highlight-num">01</span>
-        <div class="highlight-body">
-          <div class="highlight-title">Scaled the Commercial SE Function <span class="highlight-tag">CloudZero</span></div>
-          <div class="highlight-desc">First and only commercial SE — built the pre-sales motion for the commercial segment from scratch, supporting $2.5M+ ARR across 50+ new logos.</div>
+      <div class="hl-tabs">
+        <button class="hl-tab active" data-g="customers">Customer Stories</button>
+        <button class="hl-tab" data-g="internal">Internal Work</button>
+        <button class="hl-tab" data-g="personal">Personal Projects</button>
+      </div>
+
+      <!-- CUSTOMER STORIES (anonymized) -->
+      <div class="hl-group active" id="hl-customers">
+
+        <div class="highlight-item">
+          <span class="highlight-num">01</span>
+          <div class="highlight-body">
+            <div class="highlight-title">Demo to Close in 28 Days <span class="highlight-tag">Digital Asset Infrastructure</span></div>
+            <div class="highlight-desc">Won over a staff infrastructure engineer with deep billing-data expertise on a ~$7–8M AWS estate with 8 Kubernetes clusters — validating node-level cost math against double-counting, working network-attribution edge cases, and bringing ~$30K/month of CI spend into the model through custom ingestion. Being straight about what the product didn't do yet became the trust accelerant.</div>
+          </div>
+        </div>
+
+        <div class="highlight-item">
+          <span class="highlight-num">02</span>
+          <div class="highlight-body">
+            <div class="highlight-title">$475K Identified — $175K Actioned Before Signature <span class="highlight-tag">Supply-Chain SaaS</span></div>
+            <div class="highlight-desc">A 4-month competitive evaluation on an $11–13M AWS estate: 15 technical sessions, 20+ stakeholders, and a mid-engagement champion departure. Built the allocation model for the ~25% of spend that was shared infrastructure and turned the technical work into a CFO-ready business case — the customer's engineers actioned $175K of identified savings before the contract was signed.</div>
+          </div>
+        </div>
+
+        <div class="highlight-item">
+          <span class="highlight-num">03</span>
+          <div class="highlight-body">
+            <div class="highlight-title">Nine Stakeholders Aligned in Three Weeks <span class="highlight-tag">Healthcare Data Platform</span></div>
+            <div class="highlight-desc">Proof-of-concept to close in 3 weeks across finance, engineering, data governance, and security. Built client-level cost attribution from the customer's real crosswalk files — mapping Databricks workloads to the insurance payers they serve — and the CISO kept routing technical questions back after close. The account expanded 17% at renewal.</div>
+          </div>
+        </div>
+
+        <div class="highlight-item">
+          <span class="highlight-num">04</span>
+          <div class="highlight-body">
+            <div class="highlight-title">Multi-Currency Unit Economics Across Two Clouds <span class="highlight-tag">Workforce SaaS</span></div>
+            <div class="highlight-desc">Replaced a 3–4 hour, crash-prone Excel allocation process spanning AWS, GCP, and Kubernetes on four continents. The novel problem was currency conversion — solved with an exchange-rate telemetry stream no prior tool in their stack had managed — alongside usage-based splits of shared Cassandra and Kubernetes costs.</div>
+          </div>
+        </div>
+
+        <div class="highlight-item">
+          <span class="highlight-num">05</span>
+          <div class="highlight-body">
+            <div class="highlight-title">Per-Customer Costs at Database-Table Granularity <span class="highlight-tag">Web3 Infrastructure</span></div>
+            <div class="highlight-desc">A non-standard ask other tools deflected: attribute database costs to individual customers at table-level granularity. Designed a telemetry-ingestion workflow for it, connected the full environment live in a single kickoff call, and stayed in the problem until it worked — which the customer's BizOps lead cited as the reason they moved forward.</div>
+          </div>
+        </div>
+
+        <div class="highlight-item">
+          <span class="highlight-num">06</span>
+          <div class="highlight-body">
+            <div class="highlight-title">Largest Commercial Deal in CloudHealth History <span class="highlight-tag">VMware / Broadcom</span></div>
+            <div class="highlight-desc">Led the technical sale end to end — automated data ingestions, a complex cost allocation model, and ~20% in actionable cost savings identified for the customer.</div>
+          </div>
         </div>
       </div>
 
-      <div class="highlight-item">
-        <span class="highlight-num">02</span>
-        <div class="highlight-body">
-          <div class="highlight-title">Implemented AI Product SE Helper <span class="highlight-tag">CloudZero</span></div>
-          <div class="highlight-desc">An AI-powered SE assistant for live customer calls — pulls from Confluence and a weekly private repo summary to give instant, source-cited answers about CloudZero's rapidly evolving AI Telemetry product. Leads with what's customer-ready, flags what's in-progress, and never guesses.</div>
+      <!-- INTERNAL WORK -->
+      <div class="hl-group" id="hl-internal">
+
+        <div class="highlight-item">
+          <span class="highlight-num">01</span>
+          <div class="highlight-body">
+            <div class="highlight-title">Scaled the Commercial SE Function <span class="highlight-tag">CloudZero</span></div>
+            <div class="highlight-desc">First and only commercial SE — built the pre-sales motion for the commercial segment from scratch, supporting $2.5M+ ARR across 50+ new logos.</div>
+          </div>
+        </div>
+
+        <div class="highlight-item">
+          <span class="highlight-num">02</span>
+          <div class="highlight-body">
+            <div class="highlight-title">Redesigned the Proof-of-Value Process <span class="highlight-tag">CloudZero</span></div>
+            <div class="highlight-desc">Cut evaluations from 30-day POCs to 2-week technical validations with explicit success criteria scoped up front — faster time-to-value for customers and a repeatable playbook for the team.</div>
+          </div>
+        </div>
+
+        <div class="highlight-item">
+          <span class="highlight-num">03</span>
+          <div class="highlight-body">
+            <div class="highlight-title">Implemented AI Product SE Helper <span class="highlight-tag">CloudZero</span></div>
+            <div class="highlight-desc">An AI-powered SE assistant for live customer calls — pulls from Confluence and a weekly private repo summary to give instant, source-cited answers about CloudZero's rapidly evolving AI Telemetry product. Leads with what's customer-ready, flags what's in-progress, and never guesses.</div>
+          </div>
+        </div>
+
+        <div class="highlight-item">
+          <span class="highlight-num">04</span>
+          <div class="highlight-body">
+            <div class="highlight-title">Built AI Signal Digest <span class="highlight-tag">CloudZero</span></div>
+            <div class="highlight-desc">Weekly GTM enablement pipeline that pulls signal from competitor changelogs, AI provider releases, customer calls, and internal Slack — then synthesizes a digest that helps reps proactively steer conversations toward AI cost allocation.</div>
+          </div>
+        </div>
+
+        <div class="highlight-item">
+          <span class="highlight-num">05</span>
+          <div class="highlight-body">
+            <div class="highlight-title">Created Cross-Product Enablement Program <span class="highlight-tag">VMware / Broadcom</span></div>
+            <div class="highlight-desc">Pulled together SEs and AEs across the product suite to enable the full team on each other's products — shifting the go-to-market from product and feature selling toward cohesive solution selling.</div>
+          </div>
+        </div>
+
+        <div class="highlight-item">
+          <span class="highlight-num">06</span>
+          <div class="highlight-body">
+            <div class="highlight-title">Developed Automated Customer Outreach Program <span class="highlight-tag">CloudHealth</span></div>
+            <div class="highlight-desc">Built an automated outreach system to surface expansion and upsell opportunities from existing accounts, turning cost data into revenue signals while increasing customer adoption and retention.</div>
+          </div>
         </div>
       </div>
 
-      <div class="highlight-item">
-        <span class="highlight-num">03</span>
-        <div class="highlight-body">
-          <div class="highlight-title">Built CostFormation Brain <span class="highlight-tag">CloudZero</span></div>
-          <div class="highlight-desc">An AI knowledge corpus that turns any coding agent into an expert at writing CloudZero CostFormation YAML — the code the allocation engine relies on to decide how spend gets allocated. As more customers build and maintain that allocation logic with AI coding tools, this drops into a project alongside Claude Code, Cursor, Copilot, or Codex and produces correct, performant definitions on the first try.</div>
-        </div>
-      </div>
+      <!-- PERSONAL PROJECTS -->
+      <div class="hl-group" id="hl-personal">
 
-      <div class="highlight-item">
-        <span class="highlight-num">04</span>
-        <div class="highlight-body">
-          <div class="highlight-title">Built AI Signal Digest <span class="highlight-tag">CloudZero</span></div>
-          <div class="highlight-desc">Weekly GTM enablement pipeline that pulls signal from competitor changelogs, AI provider releases, customer calls, and internal Slack — then synthesizes a digest that helps reps proactively steer conversations toward AI cost allocation.</div>
+        <div class="highlight-item">
+          <span class="highlight-num">01</span>
+          <div class="highlight-body">
+            <div class="highlight-title">Built CostFormation Brain <span class="highlight-tag">Public Repo</span></div>
+            <div class="highlight-desc">An AI knowledge corpus that turns any coding agent into an expert at writing CloudZero CostFormation YAML — the code the allocation engine relies on to decide how spend gets allocated. Drops into a project alongside Claude Code, Cursor, Copilot, or Codex and produces correct, performant definitions, backed by a 16-rule validator and an eval harness.</div>
+          </div>
         </div>
-      </div>
 
-      <div class="highlight-item">
-        <span class="highlight-num">05</span>
-        <div class="highlight-body">
-          <div class="highlight-title">Created Cross-Product Enablement Program <span class="highlight-tag">VMware / Broadcom</span></div>
-          <div class="highlight-desc">Pulled together SEs and AEs across the product suite to enable the full team on each other's products — shifting the go-to-market from product and feature selling toward cohesive solution selling.</div>
+        <div class="highlight-item">
+          <span class="highlight-num">02</span>
+          <div class="highlight-body">
+            <div class="highlight-title">Built Contact Sheet <span class="highlight-tag">Live App</span></div>
+            <div class="highlight-desc">A Next.js app that culls photo sets with Claude vision the way the photographer would — intent-aware scoring with taste-profile guardrails, a measured-determinism harness, and regression-tested prompts. Born from my own photography workflow.</div>
+          </div>
         </div>
-      </div>
 
-      <div class="highlight-item">
-        <span class="highlight-num">06</span>
-        <div class="highlight-body">
-          <div class="highlight-title">Closed Largest CloudHealth Commercial Deal <span class="highlight-tag">VMware / Broadcom</span></div>
-          <div class="highlight-desc">Led the technical sale for the largest commercial deal in CloudHealth history, including automated data ingestions, a complex cost allocation model, and significant actionable cost savings of ~20%.</div>
-        </div>
-      </div>
-
-      <div class="highlight-item">
-        <span class="highlight-num">07</span>
-        <div class="highlight-body">
-          <div class="highlight-title">Developed Automated Customer Outreach Program <span class="highlight-tag">CloudHealth</span></div>
-          <div class="highlight-desc">Built an automated outreach system to surface expansion and upsell opportunities from existing accounts, turning cost data into revenue signals while increasing customer adoption and retention.</div>
+        <div class="highlight-item">
+          <span class="highlight-num">03</span>
+          <div class="highlight-body">
+            <div class="highlight-title">Built the Ask AI Agent on This Site <span class="highlight-tag">You're Using It</span></div>
+            <div class="highlight-desc">The ✦ Ask AI tab is itself a project: a corpus-grounded assistant that cites its sources, refuses to improvise, and explains its own architecture if you ask. One serverless function, a prompt-cached knowledge corpus, and a smoke-test suite probing its grounding behavior.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1100,6 +1197,17 @@
   }
   window.addEventListener('hashchange', syncFromHash);
   syncFromHash();
+
+  // Highlights sub-tabs
+  (() => {
+    const tabs = document.querySelectorAll('.hl-tab');
+    tabs.forEach((t) => t.addEventListener('click', () => {
+      tabs.forEach((x) => x.classList.remove('active'));
+      t.classList.add('active');
+      document.querySelectorAll('.hl-group').forEach((g) => g.classList.remove('active'));
+      document.getElementById('hl-' + t.dataset.g).classList.add('active');
+    }));
+  })();
 
   // ── Ask panel: streaming chat against /api/chat ────────────────
   (() => {
