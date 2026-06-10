@@ -4,6 +4,38 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Griffin Sisk</title>
+  <meta name="description" content="Senior Sales Engineer at CloudZero. Six years of technical pre-sales across cloud, Kubernetes, and AI spend — now building AI tools on the side: context design, evals, and reliability." />
+  <link rel="canonical" href="https://griffinsisk.com/" />
+
+  <!-- Open Graph / link previews -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://griffinsisk.com/" />
+  <meta property="og:title" content="Griffin Sisk" />
+  <meta property="og:description" content="Senior Sales Engineer at CloudZero. Six years of technical pre-sales across cloud, Kubernetes, and AI spend — now building AI tools on the side." />
+  <meta property="og:image" content="https://griffinsisk.com/assets/img/profile.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Griffin Sisk" />
+  <meta name="twitter:description" content="Senior Sales Engineer at CloudZero. Six years of technical pre-sales across cloud, Kubernetes, and AI spend — now building AI tools on the side." />
+  <meta name="twitter:image" content="https://griffinsisk.com/assets/img/profile.jpg" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Griffin Sisk",
+    "url": "https://griffinsisk.com/",
+    "image": "https://griffinsisk.com/assets/img/profile.jpg",
+    "jobTitle": "Senior Sales Engineer",
+    "worksFor": { "@type": "Organization", "name": "CloudZero" },
+    "sameAs": [
+      "https://linkedin.com/in/griffin-sisk-68a0b6ab",
+      "https://github.com/griffinsisk",
+      "https://medium.com/@griffinjsisk",
+      "https://www.instagram.com/griffsisk/"
+    ]
+  }
+  </script>
+
   <link rel="icon" href="assets/img/favicon.ico" />
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
@@ -534,6 +566,20 @@
 
     .project-points li strong { color: var(--white); font-weight: 500; }
 
+    /* Small uppercase text links (repo links) */
+    .text-cta {
+      display: inline-block;
+      font-family: var(--cond);
+      font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--accent);
+      border-bottom: 1px solid rgba(0,212,180,0.3);
+      padding-bottom: 1px;
+      transition: border-color 0.1s;
+    }
+    .text-cta:hover { border-bottom-color: var(--accent); }
+    .project-item .text-cta { margin-top: 14px; }
+
     /* ── CONTACT ──────────────────────────────── */
     .contact-item {
       display: flex;
@@ -623,11 +669,11 @@
 
     <!-- Nav bar -->
     <nav class="content-nav">
-      <a onclick="show('about')" id="nav-about" class="active">About</a>
-      <a onclick="show('resume')" id="nav-resume">Resume</a>
-      <a onclick="show('highlights')" id="nav-highlights">Highlights</a>
-      <a onclick="show('projects')" id="nav-projects">Projects</a>
-      <a onclick="show('contact')" id="nav-contact">Contact</a>
+      <a href="#about" id="nav-about" class="active">About</a>
+      <a href="#resume" id="nav-resume">Resume</a>
+      <a href="#highlights" id="nav-highlights">Highlights</a>
+      <a href="#projects" id="nav-projects">Projects</a>
+      <a href="#contact" id="nav-contact">Contact</a>
     </nav>
 
     <!-- ABOUT -->
@@ -639,10 +685,10 @@
           I'm a <strong>Senior Sales Engineer at CloudZero</strong>, where I run technical evaluations and help customers build cost models across cloud, Kubernetes, and AI spend. I've spent six years in technical pre-sales at VMware, Broadcom, and CloudZero — earning trust with engineering teams, articulating complex value to executives, and winning competitive deals.
         </p>
         <p class="about-block-text" style="margin-top: 16px;">
-          That work pulled me into <em>building with AI</em> myself. I've shipped tools on the side that enable internal teams: an assistant that answers product questions live on customer calls, a system that surfaces scattered market news into a weekly digest, and a tool that helps AI coding agents write correct cost-allocation code.
+          That work pulled me into <em>building with AI</em> myself. I've shipped tools on the side that my team uses every week: an assistant that answers product questions live on customer calls, a pipeline that turns scattered market news into a weekly digest, and a <a href="https://github.com/griffinsisk/costformation-brain" target="_blank" rel="noopener" style="text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px;">public corpus</a> that helps AI coding agents write correct cost-allocation code. Most of what I know about context design and failure modes came from watching these break and fixing them.
         </p>
         <p class="about-block-text" style="margin-top: 16px;">
-          The one I'm proudest of is more personal. <a href="https://contact-sheet-three.vercel.app/" target="_blank" rel="noopener" style="text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px;"><strong>Contact Sheet</strong></a> came out of my own <em>photography</em>. After a shoot I'd dread sorting through hundreds of frames, so I built a tool that picks the best ones the way I would, by what the image was trying to capture rather than which is sharpest. It's a working web app anyone can use, where two things I love doing come together: photography and building with AI.
+          It's the same instinct as my sales work — start from the real problem, be honest about what works, keep iterating.
         </p>
       </div>
 
@@ -795,6 +841,7 @@
           <li>Built auto-populating org context from a customer's live config plus the CloudZero MCP, with a compact index so context persists efficiently across sessions.</li>
           <li>Packaged one corpus to deploy identically across five AI coding tools by mapping each to its native instruction format.</li>
         </ul>
+        <a class="text-cta" href="https://github.com/griffinsisk/costformation-brain" target="_blank">View on GitHub ↗</a>
       </div>
 
       <div class="project-item">
@@ -835,6 +882,7 @@
           <li>Created an eval-fixtures harness and Playwright tests to measure scoring quality and catch regressions.</li>
           <li>Designed scoring logic that ranks images by what the photographer is selecting for, not generic aesthetics.</li>
         </ul>
+        <a class="text-cta" href="https://contact-sheet-three.vercel.app/" target="_blank" rel="noopener">Try the app ↗</a>
       </div>
     </div>
 
@@ -941,13 +989,20 @@
     }, { passive: true });
   })();
 
-  // Panel nav
+  // Panel nav — driven by the URL hash so panels are deep-linkable
   function show(id) {
+    const panel = document.getElementById('panel-' + id);
+    if (!panel) return;
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.content-nav a').forEach(a => a.classList.remove('active'));
-    document.getElementById('panel-' + id).classList.add('active');
+    panel.classList.add('active');
     document.getElementById('nav-' + id).classList.add('active');
   }
+  function syncFromHash() {
+    show((location.hash || '#about').slice(1));
+  }
+  window.addEventListener('hashchange', syncFromHash);
+  syncFromHash();
 </script>
 </body>
 </html>
