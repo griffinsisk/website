@@ -441,6 +441,28 @@
     .hl-group { display: none; }
     .hl-group.active { display: block; }
 
+    /* Show More expanders */
+    .hl-more { margin-top: 12px; }
+    .hl-more summary {
+      list-style: none; cursor: pointer; display: inline-flex;
+      align-items: center; gap: 6px;
+      font-family: var(--cond); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+    }
+    .hl-more summary::-webkit-details-marker { display: none; }
+    .hl-more summary::after { content: '+'; font-size: 13px; line-height: 1; }
+    .hl-more[open] summary::after { content: '−'; }
+    .hl-more-body {
+      margin-top: 10px; font-size: 13px; font-weight: 300;
+      color: var(--muted); line-height: 1.7; max-width: 500px;
+    }
+    .hl-more-body ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .hl-more-body li { position: relative; padding-left: 16px; }
+    .hl-more-body li::before {
+      content: ''; position: absolute; left: 0; top: 9px;
+      width: 4px; height: 4px; background: var(--accent); border-radius: 50%;
+    }
+
     .highlight-item {
       margin-bottom: 40px;
       padding-bottom: 40px;
@@ -860,19 +882,25 @@
       <div class="panel-title">Highlights</div>
 
       <div class="hl-tabs">
-        <button class="hl-tab active" data-g="customers">Customer Stories</button>
-        <button class="hl-tab" data-g="internal">Internal Work</button>
+        <button class="hl-tab active" data-g="internal">Internal Work</button>
+        <button class="hl-tab" data-g="customers">Customer Stories</button>
         <button class="hl-tab" data-g="personal">Personal Projects</button>
       </div>
 
       <!-- CUSTOMER STORIES (anonymized) -->
-      <div class="hl-group active" id="hl-customers">
+      <div class="hl-group" id="hl-customers">
 
         <div class="highlight-item">
           <span class="highlight-num">01</span>
           <div class="highlight-body">
             <div class="highlight-title">Demo to Close in 28 Days <span class="highlight-tag">Digital Asset Infrastructure</span></div>
             <div class="highlight-desc">Won over a staff infrastructure engineer with deep billing-data expertise on a ~$7–8M AWS estate with 8 Kubernetes clusters — validating node-level cost math against double-counting, working network-attribution edge cases, and bringing ~$30K/month of CI spend into the model through custom ingestion. Being straight about what the product didn't do yet became the trust accelerant.</div>
+            <details class="hl-more"><summary>Show More</summary><div class="hl-more-body"><ul>
+              <li>Scoped a proof-of-concept spanning AWS, Snowflake, 8 EKS clusters, and CI-pipeline spend brought in through CloudZero's bring-your-own-data ingestion.</li>
+              <li>Walked the evaluator through the Kubernetes cost algorithm — max(request, usage) per pod — and proved out no node-level double-counting, plus PVC/EBS reconciliation and reservation pass-through.</li>
+              <li>Worked a hard edge case: attributing network egress for blockchain validator traffic at flow-level granularity.</li>
+              <li>Resolved an SSO configuration lockout before the final close call, and built engineering dashboards cost-ranked to stay inside the BI layer's row limits.</li>
+            </ul></div></details>
           </div>
         </div>
 
@@ -881,6 +909,12 @@
           <div class="highlight-body">
             <div class="highlight-title">$475K Identified — $175K Actioned Before Signature <span class="highlight-tag">Supply-Chain SaaS</span></div>
             <div class="highlight-desc">A 4-month competitive evaluation on an $11–13M AWS estate: 15 technical sessions, 20+ stakeholders, and a mid-engagement champion departure. Built the allocation model for the ~25% of spend that was shared infrastructure and turned the technical work into a CFO-ready business case — the customer's engineers actioned $175K of identified savings before the contract was signed.</div>
+            <details class="hl-more"><summary>Show More</summary><div class="hl-more-body"><ul>
+              <li>Scoped the trial around explicit objectives: AWS + Kubernetes ingestion, product/team/customer allocation, and quantified ROI — then imported a year of historical billing data to prove trends, not snapshots.</li>
+              <li>Modeled shared-service allocation using proportional usage-based splits, and answered the methodology questions head-on: reservation coverage, anomaly detection, and how shared platform costs flow to products fairly.</li>
+              <li>Recorded short async video walkthroughs (cost-splitting explained with an airplane-seat analogy) so executives who missed live sessions could still follow the business case.</li>
+              <li>Survived a champion departure mid-evaluation by having already built relationships across 20+ stakeholders, from engineers to the CFO.</li>
+            </ul></div></details>
           </div>
         </div>
 
@@ -889,6 +923,12 @@
           <div class="highlight-body">
             <div class="highlight-title">Nine Stakeholders Aligned in Three Weeks <span class="highlight-tag">Healthcare Data Platform</span></div>
             <div class="highlight-desc">Proof-of-concept to close in 3 weeks across finance, engineering, data governance, and security. Built client-level cost attribution from the customer's real crosswalk files — mapping Databricks workloads to the insurance payers they serve — and the CISO kept routing technical questions back after close. The account expanded 17% at renewal.</div>
+            <details class="hl-more"><summary>Show More</summary><div class="hl-more-body"><ul>
+              <li>Connected AWS, Databricks, and Snowflake billing in the first session, then built "data domain" dimensions from the customer's crosswalk files so every Databricks job ID rolled up to the end-client it serves.</li>
+              <li>Cleaned up account-naming inconsistencies blocking allocation, and ran a structured financial-dashboard review with the finance team against their real reporting needs.</li>
+              <li>Scoped API/IaC automation so onboarding each future client wouldn't require touching the cost model by hand.</li>
+              <li>After close, the CISO brought third-party pricing changes to Griffin for impact analysis — pre-sales trust converting into an advisory relationship.</li>
+            </ul></div></details>
           </div>
         </div>
 
@@ -897,6 +937,12 @@
           <div class="highlight-body">
             <div class="highlight-title">Multi-Currency Unit Economics Across Two Clouds <span class="highlight-tag">Workforce SaaS</span></div>
             <div class="highlight-desc">Replaced a 3–4 hour, crash-prone Excel allocation process spanning AWS, GCP, and Kubernetes on four continents. The novel problem was currency conversion — solved with an exchange-rate telemetry stream no prior tool in their stack had managed — alongside usage-based splits of shared Cassandra and Kubernetes costs.</div>
+            <details class="hl-more"><summary>Show More</summary><div class="hl-more-body"><ul>
+              <li>Designed the CAD/USD conversion as monthly FX-rate telemetry uploads, so finance reporting landed in the currency the business actually budgets in.</li>
+              <li>Split shared Cassandra costs by what drives them: storage allocated by event volume, compute by read/write activity — and GKE workloads by app labels with shared cluster costs distributed on CPU/memory.</li>
+              <li>Brought GCP discount mechanics (committed-use and sustained-use) and BigQuery reservations into the allocation model rather than leaving them as unallocated noise.</li>
+              <li>Configured RBAC and scoped views so sensitive cost data stayed hidden from the wrong audiences — the failure that had sunk their previous Kubernetes cost tool — plus budget alerts delivered into Slack.</li>
+            </ul></div></details>
           </div>
         </div>
 
@@ -905,6 +951,12 @@
           <div class="highlight-body">
             <div class="highlight-title">Per-Customer Costs at Database-Table Granularity <span class="highlight-tag">Web3 Infrastructure</span></div>
             <div class="highlight-desc">A non-standard ask other tools deflected: attribute database costs to individual customers at table-level granularity. Designed a telemetry-ingestion workflow for it, connected the full environment live in a single kickoff call, and stayed in the problem until it worked — which the customer's BizOps lead cited as the reason they moved forward.</div>
+            <details class="hl-more"><summary>Show More</summary><div class="hl-more-body"><ul>
+              <li>Diagnosed in the first demo that per-customer RDS attribution (~$130K/month of database spend) was the make-or-break requirement, and outlined a custom telemetry path before the POV started.</li>
+              <li>Connected AWS plus dev and prod EKS clusters live during the kickoff call, with compute allocation keyed off pod labels.</li>
+              <li>Validated the table-to-customer telemetry workflow in a working session against their real data, including a clean CSV contract so their team could produce the feed reliably.</li>
+              <li>Designed the maintenance path as API-driven, so new customer onboardings flow into the cost model automatically instead of accruing manual work.</li>
+            </ul></div></details>
           </div>
         </div>
 
@@ -913,18 +965,29 @@
           <div class="highlight-body">
             <div class="highlight-title">Largest Commercial Deal in CloudHealth History <span class="highlight-tag">VMware / Broadcom</span></div>
             <div class="highlight-desc">Led the technical sale end to end — automated data ingestions, a complex cost allocation model, and ~20% in actionable cost savings identified for the customer.</div>
+            <details class="hl-more"><summary>Show More</summary><div class="hl-more-body"><ul>
+              <li>Automated multi-source billing ingestion where the platform's standard connectors didn't cover the customer's estate.</li>
+              <li>Built a cost allocation model complex enough to be the deal's core technical risk — and de-risked it during the evaluation rather than after signature.</li>
+              <li>Part of a run of 100%+ quota across 7 consecutive half-years, with 150%+ in 3 of them.</li>
+            </ul></div></details>
           </div>
         </div>
       </div>
 
       <!-- INTERNAL WORK -->
-      <div class="hl-group" id="hl-internal">
+      <div class="hl-group active" id="hl-internal">
 
         <div class="highlight-item">
           <span class="highlight-num">01</span>
           <div class="highlight-body">
             <div class="highlight-title">Scaled the Commercial SE Function <span class="highlight-tag">CloudZero</span></div>
             <div class="highlight-desc">First and only commercial SE — built the pre-sales motion for the commercial segment from scratch, supporting $2.5M+ ARR across 50+ new logos.</div>
+            <details class="hl-more"><summary>Show More</summary><div class="hl-more-body"><ul>
+              <li>Built the reusable assets the motion runs on: demo environments and dashboard templates for cloud unit economics, cost allocation, and Kubernetes spend.</li>
+              <li>Wrote Python data-ingestion pipelines (AWS Lambda, S3, REST APIs) to automate cost allocation and margin reporting for evaluations.</li>
+              <li>Owns security and compliance as first-line technical contact — RFPs, security questionnaires, and buyer questions on access controls and data handling.</li>
+              <li>Coaches new SEs and AEs on discovery, POV execution, objection handling, and demo strategy.</li>
+            </ul></div></details>
           </div>
         </div>
 
@@ -933,6 +996,11 @@
           <div class="highlight-body">
             <div class="highlight-title">Redesigned the Proof-of-Value Process <span class="highlight-tag">CloudZero</span></div>
             <div class="highlight-desc">Cut evaluations from 30-day POCs to 2-week technical validations with explicit success criteria scoped up front — faster time-to-value for customers and a repeatable playbook for the team.</div>
+            <details class="hl-more"><summary>Show More</summary><div class="hl-more-body"><ul>
+              <li>Success criteria are written and agreed with engineering and finance stakeholders before any data is connected — so "done" is defined before the clock starts.</li>
+              <li>Validations run against the customer's real billing data, structured as working sessions that build the actual allocation model rather than a throwaway demo.</li>
+              <li>Ends in a readout that maps each criterion to evidence — which is what compressed 30 days to 2 weeks without cutting rigor.</li>
+            </ul></div></details>
           </div>
         </div>
 
@@ -941,30 +1009,64 @@
           <div class="highlight-body">
             <div class="highlight-title">Implemented AI Product SE Helper <span class="highlight-tag">CloudZero</span></div>
             <div class="highlight-desc">An AI-powered SE assistant for live customer calls — pulls from Confluence and a weekly private repo summary to give instant, source-cited answers about CloudZero's rapidly evolving AI Telemetry product. Leads with what's customer-ready, flags what's in-progress, and never guesses.</div>
+            <details class="hl-more"><summary>Show More</summary><div class="hl-more-body"><ul>
+              <li>Three layers: an unattended Python sync pipeline (2x-daily for fast-moving docs, weekly for stable repos, scheduled via launchd), weekly AI summarization that distills a 104K-line Swift/Go codebase into a focused reference, and live Jira/Confluence lookups at question time for anything volatile.</li>
+              <li>A tiered authority system decides what wins when sources conflict: customer-facing docs always beat code, because "exists in the repo" doesn't mean "supported for customers."</li>
+              <li>Every answer cites its source; an uncitable answer becomes "I don't know" with an escalation path, and a stale codebase summary (&gt;7 days) flags itself.</li>
+              <li>Response format is tuned for mid-call use: the customer-ready answer first, technical detail second, caveats flagged last.</li>
+            </ul></div></details>
           </div>
         </div>
 
         <div class="highlight-item">
           <span class="highlight-num">04</span>
           <div class="highlight-body">
-            <div class="highlight-title">Built AI Signal Digest <span class="highlight-tag">CloudZero</span></div>
-            <div class="highlight-desc">Weekly GTM enablement pipeline that pulls signal from competitor changelogs, AI provider releases, customer calls, and internal Slack — then synthesizes a digest that helps reps proactively steer conversations toward AI cost allocation.</div>
+            <div class="highlight-title">Built CostFormation Brain <span class="highlight-tag">CloudZero</span></div>
+            <div class="highlight-desc">An AI knowledge corpus that turns any coding agent into an expert at writing CloudZero CostFormation YAML — the code the allocation engine relies on to decide how spend gets allocated. Provided to customers to drop into a project alongside Claude Code, Cursor, Copilot, or Codex for correct, performant definitions.</div>
+            <details class="hl-more"><summary>Show More</summary><div class="hl-more-body"><ul>
+              <li>A generate → validate → repair loop: agents must run a ~1,000-line Python validator (16 deterministic lint rules) and fix errors before presenting YAML — the architecture assumes the model will sometimes be wrong and catches it.</li>
+              <li>A routing table sends agents to exactly the corpus files a task needs, and a mandatory pre-generation checklist makes compliance observable to the human reviewer.</li>
+              <li>20 worked example patterns (anonymized from real customer configs) with selection metadata, plus an 18-case eval harness including negative tests that verify broken YAML gets caught.</li>
+              <li>One corpus shipped in four agent-native formats (CLAUDE.md, .cursorrules, Copilot instructions, AGENTS.md), kept isomorphic so behavior is identical across tools. Public at github.com/griffinsisk/costformation-brain.</li>
+            </ul></div></details>
           </div>
         </div>
 
         <div class="highlight-item">
           <span class="highlight-num">05</span>
           <div class="highlight-body">
-            <div class="highlight-title">Created Cross-Product Enablement Program <span class="highlight-tag">VMware / Broadcom</span></div>
-            <div class="highlight-desc">Pulled together SEs and AEs across the product suite to enable the full team on each other's products — shifting the go-to-market from product and feature selling toward cohesive solution selling.</div>
+            <div class="highlight-title">Built AI Signal Digest <span class="highlight-tag">CloudZero</span></div>
+            <div class="highlight-desc">Weekly GTM enablement pipeline that pulls signal from competitor changelogs, AI provider releases, customer calls, and internal Slack — then synthesizes a digest that helps reps proactively steer conversations toward AI cost allocation.</div>
+            <details class="hl-more"><summary>Show More</summary><div class="hl-more-body"><ul>
+              <li>Deterministic pipeline, probabilistic AI: Python fetches and normalizes ~18 sources; Claude decides relevance and labeling through version-controlled prompts ground-truthed to a written signal-vs-noise spec.</li>
+              <li>Every item carries a talk-track safety label — 🟢 safe to reference with customers, 🟡 internal awareness only — with conservative tier-based defaults ("when in doubt, label 🟡").</li>
+              <li>A field pattern needs 3+ customer calls across 2+ accounts before the digest calls it a trend, and only customer-volunteered signal counts.</li>
+              <li>Cached extractions make prompt iteration a 30-second re-synthesis instead of a 25-minute re-run; the whole thing costs about $1.20/week to operate.</li>
+            </ul></div></details>
           </div>
         </div>
 
         <div class="highlight-item">
           <span class="highlight-num">06</span>
           <div class="highlight-body">
+            <div class="highlight-title">Created Cross-Product Enablement Program <span class="highlight-tag">VMware / Broadcom</span></div>
+            <div class="highlight-desc">Pulled together SEs and AEs across the product suite to enable the full team on each other's products — shifting the go-to-market from product and feature selling toward cohesive solution selling.</div>
+            <details class="hl-more"><summary>Show More</summary><div class="hl-more-body"><ul>
+              <li>Structured as recurring cross-training where each product's SEs taught the others their demo, discovery questions, and qualifying signals.</li>
+              <li>The payoff: any SE could spot and tee up opportunities for the whole portfolio, instead of selling one product into accounts that needed three.</li>
+            </ul></div></details>
+          </div>
+        </div>
+
+        <div class="highlight-item">
+          <span class="highlight-num">07</span>
+          <div class="highlight-body">
             <div class="highlight-title">Developed Automated Customer Outreach Program <span class="highlight-tag">CloudHealth</span></div>
             <div class="highlight-desc">Built an automated outreach system to surface expansion and upsell opportunities from existing accounts, turning cost data into revenue signals while increasing customer adoption and retention.</div>
+            <details class="hl-more"><summary>Show More</summary><div class="hl-more-body"><ul>
+              <li>Used customers' own cost data as the trigger: spend patterns and feature-adoption gaps generated outreach with a concrete reason to talk, not a check-in.</li>
+              <li>Paired with a scaled NPS program across a 100+ account book — together driving renewal above 90%.</li>
+            </ul></div></details>
           </div>
         </div>
       </div>
@@ -975,24 +1077,28 @@
         <div class="highlight-item">
           <span class="highlight-num">01</span>
           <div class="highlight-body">
-            <div class="highlight-title">Built CostFormation Brain <span class="highlight-tag">Public Repo</span></div>
-            <div class="highlight-desc">An AI knowledge corpus that turns any coding agent into an expert at writing CloudZero CostFormation YAML — the code the allocation engine relies on to decide how spend gets allocated. Drops into a project alongside Claude Code, Cursor, Copilot, or Codex and produces correct, performant definitions, backed by a 16-rule validator and an eval harness.</div>
+            <div class="highlight-title">Built Contact Sheet <span class="highlight-tag">Live App</span></div>
+            <div class="highlight-desc">A Next.js app that culls photo sets with Claude vision the way the photographer would — intent-aware scoring with taste-profile guardrails, a measured-determinism harness, and regression-tested prompts. Born from my own photography workflow.</div>
+            <details class="hl-more"><summary>Show More</summary><div class="hl-more-body"><ul>
+              <li>Two-pass pipeline tuned for cost: rapid culling at 512px in 20-photo batches (~60% vision-token savings), then selective deep review at 1024px for the keepers.</li>
+              <li>Eight session intents rewrite the craft rules — film mode scores clinical sharpness lower for missing the aesthetic; wildlife mode treats a soft eye as a hard failure.</li>
+              <li>Taste profiles nudge scores by at most ±6 points via app-side guardrails — style alignment can never promote a frame with no story to the top tier.</li>
+              <li>Determinism measured, not assumed: 340 API calls (34 photos × 5 runs × 2 resolutions) showed 100% rating stability at temperature 0, so engineering effort went to cost and UX instead of variance.</li>
+            </ul></div></details>
           </div>
         </div>
 
         <div class="highlight-item">
           <span class="highlight-num">02</span>
           <div class="highlight-body">
-            <div class="highlight-title">Built Contact Sheet <span class="highlight-tag">Live App</span></div>
-            <div class="highlight-desc">A Next.js app that culls photo sets with Claude vision the way the photographer would — intent-aware scoring with taste-profile guardrails, a measured-determinism harness, and regression-tested prompts. Born from my own photography workflow.</div>
-          </div>
-        </div>
-
-        <div class="highlight-item">
-          <span class="highlight-num">03</span>
-          <div class="highlight-body">
             <div class="highlight-title">Built the Ask AI Agent on This Site <span class="highlight-tag">You're Using It</span></div>
             <div class="highlight-desc">The ✦ Ask AI tab is itself a project: a corpus-grounded assistant that cites its sources, refuses to improvise, and explains its own architecture if you ask. One serverless function, a prompt-cached knowledge corpus, and a smoke-test suite probing its grounding behavior.</div>
+            <details class="hl-more"><summary>Show More</summary><div class="hl-more-body"><ul>
+              <li>Deliberately no RAG: the whole corpus ships as a cached prompt prefix because at this scale retrieval would only add latency, cost, and the one failure mode the agent is designed against — answering without seeing the relevant section.</li>
+              <li>A behavior contract enforces citation, honest "Griffin hasn't shared that," and polite refusal of off-topic use — probed by a smoke-test script after every corpus change.</li>
+              <li>Layered abuse guards: input and history caps, per-IP rate limiting, capped output, disconnect-abort to stop paying for abandoned streams, and a provider-side spend limit as the backstop.</li>
+              <li>Ask it "why don't you use RAG?" — it will explain this decision itself, with the section citation.</li>
+            </ul></div></details>
           </div>
         </div>
       </div>
