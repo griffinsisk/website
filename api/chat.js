@@ -38,6 +38,10 @@ export default async function handler(req, res) {
     return;
   }
 
+  // Strip unknown keys so client-supplied fields (e.g. cache_control) never
+  // reach the API.
+  const messages = req.body.messages.map((m) => ({ role: m.role, content: m.content }));
+
   res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
   res.setHeader("Cache-Control", "no-cache, no-transform");
 
@@ -53,8 +57,11 @@ export default async function handler(req, res) {
         // prefix (behavior prompt + corpus) across requests.
         { type: "text", text: corpus, cache_control: { type: "ephemeral" } },
       ],
-      messages: req.body.messages,
+      messages,
     });
+
+    // Stop paying for tokens nobody will read if the visitor disconnects.
+    req.on("close", () => stream.controller.abort());
 
     for await (const event of stream) {
       if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
