@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { validateMessages, MAX_MESSAGE_CHARS, MAX_TURNS } from "../api/_lib/validate.js";
+import { validateMessages, MAX_MESSAGE_CHARS, MAX_TURNS, MAX_TOTAL_CHARS } from "../api/_lib/validate.js";
 
 test("accepts a single user message", () => {
   assert.equal(validateMessages([{ role: "user", content: "What has Griffin built?" }]).ok, true);
@@ -55,5 +55,15 @@ test("rejects a conversation over MAX_TURNS messages", () => {
   for (let i = 0; i < MAX_TURNS + 1; i++) {
     messages.push({ role: i % 2 === 0 ? "user" : "assistant", content: "m" });
   }
+  assert.equal(validateMessages(messages).ok, false);
+});
+
+test("rejects a conversation over MAX_TOTAL_CHARS total characters", () => {
+  const big = "x".repeat(MAX_TOTAL_CHARS - 100);
+  const messages = [
+    { role: "user", content: "start" },
+    { role: "assistant", content: big },
+    { role: "user", content: "x".repeat(200) },
+  ];
   assert.equal(validateMessages(messages).ok, false);
 });
