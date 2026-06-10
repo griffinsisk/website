@@ -14,6 +14,9 @@ const cache = new Map(); // dir (or "default") -> concatenated corpus string
 
 async function readDirCorpus(dir) {
   const files = (await readdir(dir)).filter((f) => f.endsWith(".md")).sort();
+  // An empty dir must fail loudly (and let the next candidate try) — a corpus-less
+  // agent would silently violate its grounding rules on every answer.
+  if (files.length === 0) throw new Error(`no corpus .md files found in ${dir}`);
   const parts = await Promise.all(files.map((f) => readFile(path.join(dir, f), "utf8")));
   return parts.join("\n\n");
 }
