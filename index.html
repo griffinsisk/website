@@ -611,6 +611,50 @@
 
     .contact-val:hover { color: var(--accent); }
 
+    /* ── ASK ──────────────────────────────────── */
+    .ask-intro {
+      font-size: 13px; font-weight: 300; color: var(--muted);
+      line-height: 1.7; max-width: 520px; margin-bottom: 24px;
+    }
+    .ask-chips { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
+    .ask-chip {
+      font-family: var(--cond); font-size: 12px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--accent); background: rgba(0,212,180,0.08);
+      border: 1px solid rgba(0,212,180,0.18); border-radius: 2px;
+      padding: 6px 12px; cursor: pointer; transition: background 0.1s;
+    }
+    .ask-chip:hover { background: rgba(0,212,180,0.16); }
+    .ask-log { display: flex; flex-direction: column; gap: 16px; max-width: 560px; }
+    .ask-log:not(:empty) { margin-bottom: 24px; }
+    .ask-msg { font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
+    .ask-msg.ask-user {
+      color: var(--white); font-weight: 500;
+      border-left: 2px solid var(--accent); padding-left: 12px;
+    }
+    .ask-msg.ask-assistant { color: var(--muted); font-weight: 300; }
+    .ask-msg.ask-pending::after { content: '▌'; color: var(--accent); animation: ask-blink 1s step-end infinite; }
+    @keyframes ask-blink { 50% { opacity: 0; } }
+    .ask-form { display: flex; gap: 10px; max-width: 560px; }
+    .ask-form input {
+      flex: 1; background: rgba(255,255,255,0.04);
+      border: 1px solid var(--dim); border-radius: 2px;
+      color: var(--white); font-family: var(--sans); font-size: 13px;
+      padding: 10px 12px; outline: none;
+    }
+    .ask-form input:focus { border-color: rgba(0,212,180,0.4); }
+    .ask-form button {
+      font-family: var(--cond); font-size: 13px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--black); background: var(--accent);
+      border: none; border-radius: 2px; padding: 0 18px; cursor: pointer;
+    }
+    .ask-form button:disabled { opacity: 0.4; cursor: default; }
+    .ask-note {
+      font-size: 11px; font-weight: 300; color: rgba(255,255,255,0.3);
+      margin-top: 12px; max-width: 560px;
+    }
+
     /* ── RESPONSIVE ───────────────────────────── */
     @media (max-width: 860px) {
       .hero-name { padding: 32px 24px 24px; }
@@ -674,6 +718,7 @@
       <a href="#highlights" id="nav-highlights">Highlights</a>
       <a href="#projects" id="nav-projects">Projects</a>
       <a href="#contact" id="nav-contact">Contact</a>
+      <a href="#ask" id="nav-ask">Ask</a>
     </nav>
 
     <!-- ABOUT -->
@@ -917,6 +962,27 @@
       </div>
     </div>
 
+    <!-- ASK -->
+    <div class="panel" id="panel-ask">
+      <div class="panel-title">Ask</div>
+      <p class="ask-intro">An assistant grounded in a curated corpus about my work. It cites where each answer comes from — and says so plainly when something isn't covered. The assistant is itself one of my projects: ask it how it works.</p>
+
+      <div class="ask-chips">
+        <button class="ask-chip" data-q="What has Griffin actually built?">What has Griffin actually built?</button>
+        <button class="ask-chip" data-q="Why would Griffin fit a Solutions Architect role at an AI company?">Why an SE at an AI company?</button>
+        <button class="ask-chip" data-q="How does this assistant avoid making things up?">How does this avoid making things up?</button>
+      </div>
+
+      <div class="ask-log" id="askLog" aria-live="polite"></div>
+
+      <form class="ask-form" id="askForm">
+        <input id="askInput" type="text" maxlength="1000" autocomplete="off"
+               placeholder="Ask about Griffin's work…" aria-label="Ask a question about Griffin" />
+        <button type="submit" id="askSend">Send ↑</button>
+      </form>
+      <p class="ask-note">Answers come from a fixed corpus, not live data. Conversations aren't stored.</p>
+    </div>
+
   </div>
 </div>
 
@@ -1003,6 +1069,87 @@
   }
   window.addEventListener('hashchange', syncFromHash);
   syncFromHash();
+
+  // ── Ask panel: streaming chat against /api/chat ────────────────
+  (() => {
+    const log = document.getElementById('askLog');
+    const form = document.getElementById('askForm');
+    const input = document.getElementById('askInput');
+    const sendBtn = document.getElementById('askSend');
+    if (!log || !form) return;
+
+    const history = [];
+    let busy = false;
+
+    function addMsg(role, text) {
+      const el = document.createElement('div');
+      el.className = 'ask-msg ask-' + role;
+      el.textContent = text;
+      log.appendChild(el);
+      el.scrollIntoView({ block: 'nearest' });
+      return el;
+    }
+
+    async function send(question) {
+      question = (question || '').trim();
+      if (busy || !question) return;
+      busy = true;
+      input.value = '';
+      sendBtn.disabled = true;
+
+      addMsg('user', question);
+      history.push({ role: 'user', content: question });
+      const el = addMsg('assistant', '');
+      el.classList.add('ask-pending');
+
+      let answer = '';
+      try {
+        const r = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: history }),
+        });
+        if (!r.ok) {
+          const j = await r.json().catch(() => ({}));
+          throw new Error(j.error || 'Request failed (' + r.status + ')');
+        }
+        const reader = r.body.getReader();
+        const dec = new TextDecoder();
+        let buf = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += dec.decode(value, { stream: true });
+          const events = buf.split('\n\n');
+          buf = events.pop();
+          for (const ev of events) {
+            const line = ev.split('\n').find((l) => l.startsWith('data: '));
+            if (!line) continue;
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+            const payload = JSON.parse(data);
+            if (payload.error) throw new Error(payload.error);
+            answer += payload.text;
+            el.textContent = answer;
+            el.scrollIntoView({ block: 'nearest' });
+          }
+        }
+        if (!answer) throw new Error('No response — try again.');
+        history.push({ role: 'assistant', content: answer });
+      } catch (e) {
+        history.pop(); // drop the failed user turn so a retry keeps roles alternating
+        el.textContent = (e.message || 'Something went wrong.') +
+          ' You can also reach Griffin at griffinjsisk@gmail.com.';
+      }
+      el.classList.remove('ask-pending');
+      busy = false;
+      sendBtn.disabled = false;
+    }
+
+    form.addEventListener('submit', (e) => { e.preventDefault(); send(input.value); });
+    document.querySelectorAll('.ask-chip').forEach((c) =>
+      c.addEventListener('click', () => send(c.dataset.q)));
+  })();
 </script>
 </body>
 </html>
