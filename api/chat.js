@@ -61,7 +61,11 @@ export default async function handler(req, res) {
     });
 
     // Stop paying for tokens nobody will read if the visitor disconnects.
-    req.on("close", () => stream.controller.abort());
+    // (res 'close' + writableEnded guard: req 'close' fires on request-body
+    // completion in modern Node, not on socket teardown.)
+    res.on("close", () => {
+      if (!res.writableEnded) stream.controller.abort();
+    });
 
     for await (const event of stream) {
       if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
