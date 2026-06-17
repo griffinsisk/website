@@ -3,5 +3,12 @@
     "api/chat.js": {
       "includeFiles": "api/corpus/**"
     }
-  }
+  },
+  "routes": [
+    {
+      "src": "/.*",
+      "status": 503,
+      "headers": { "Retry-After": "3600", "Cache-Control": "no-store" }
+    }
+  ]
 }
