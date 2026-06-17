@@ -6,9 +6,16 @@
   },
   "routes": [
     {
+      "src": "/maintenance.html",
+      "status": 503,
+      "headers": { "Cache-Control": "no-store" },
+      "dest": "/maintenance.html"
+    },
+    {
       "src": "/.*",
       "status": 503,
-      "headers": { "Retry-After": "3600", "Cache-Control": "no-store" }
+      "headers": { "Retry-After": "3600", "Cache-Control": "no-store" },
+      "dest": "/maintenance.html"
     }
   ]
 }
