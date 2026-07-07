@@ -32,3 +32,14 @@ test("loads the real corpus directory by default", async () => {
   const corpus = await loadCorpus();
   assert.ok(corpus.includes("## About"), "real corpus should contain the About section");
 });
+
+test("throws when the directory has no .md files", async () => {
+  const dir = await mkdtemp(path.join(tmpdir(), "corpus-empty-"));
+  await writeFile(path.join(dir, "readme.txt"), "not markdown");
+  await assert.rejects(() => loadCorpus(dir), /no corpus \.md files found/);
+});
+
+test("throws when the directory does not exist", async () => {
+  const dir = path.join(tmpdir(), "corpus-does-not-exist-" + Date.now());
+  await assert.rejects(() => loadCorpus(dir));
+});
