@@ -17,7 +17,11 @@ export default async function handler(req, res) {
     return;
   }
 
-  const ip = String(req.headers["x-forwarded-for"] ?? "unknown").split(",")[0].trim();
+  // Prefer x-real-ip: Vercel's proxy sets it to the true client IP and clients
+  // can't spoof it. Fall back to the last x-forwarded-for hop (the one appended
+  // by the proxy), never the client-controlled leftmost entry.
+  const xff = String(req.headers["x-forwarded-for"] ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  const ip = String(req.headers["x-real-ip"] ?? xff[xff.length - 1] ?? "unknown");
   if (isRateLimited(ip)) {
     res.status(429).json({ error: "Too many questions at once — give it a minute and try again." });
     return;
