@@ -1413,7 +1413,8 @@
             if (!line) continue;
             const data = line.slice(6);
             if (data === '[DONE]') { sawDone = true; continue; }
-            const payload = JSON.parse(data);
+            let payload;
+            try { payload = JSON.parse(data); } catch { continue; }
             if (payload.error) throw new Error(payload.error);
             answer += payload.text;
             renderAnswer(el, answer);

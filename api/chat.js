@@ -45,6 +45,8 @@ export default async function handler(req, res) {
   res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
   res.setHeader("Cache-Control", "no-cache, no-transform");
 
+  let clientGone = false;
+
   try {
     const stream = client.messages.stream({
       model: "claude-sonnet-4-6",
@@ -64,7 +66,10 @@ export default async function handler(req, res) {
     // (res 'close' + writableEnded guard: req 'close' fires on request-body
     // completion in modern Node, not on socket teardown.)
     res.on("close", () => {
-      if (!res.writableEnded) stream.controller.abort();
+      if (!res.writableEnded) {
+        clientGone = true;
+        stream.controller.abort();
+      }
     });
 
     for await (const event of stream) {
@@ -73,12 +78,16 @@ export default async function handler(req, res) {
       }
     }
   } catch (err) {
-    console.error("anthropic call failed", err?.status, err?.message);
-    const overloaded =
-      err instanceof Anthropic.APIError && (err.status === 429 || err.status === 529);
-    res.write(`data: ${JSON.stringify({ error: overloaded ? CAPACITY_MSG : GENERIC_MSG })}\n\n`);
+    if (!clientGone) {
+      console.error("anthropic call failed", err?.status, err?.message);
+      const overloaded =
+        err instanceof Anthropic.APIError && (err.status === 429 || err.status === 529);
+      res.write(`data: ${JSON.stringify({ error: overloaded ? CAPACITY_MSG : GENERIC_MSG })}\n\n`);
+    }
   }
 
-  res.write("data: [DONE]\n\n");
-  res.end();
+  if (!res.writableEnded) {
+    res.write("data: [DONE]\n\n");
+    res.end();
+  }
 }

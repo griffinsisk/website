@@ -31,16 +31,21 @@ export async function loadCorpus(dir) {
   if (dir) {
     corpus = await readDirCorpus(dir);
   } else {
-    let lastErr;
+    const errors = [];
     for (const candidate of CANDIDATE_DIRS) {
       try {
         corpus = await readDirCorpus(candidate);
         break;
       } catch (err) {
-        lastErr = err;
+        errors.push(err);
       }
     }
-    if (corpus === undefined) throw lastErr;
+    if (corpus === undefined) {
+      throw new Error(
+        `corpus not found (tried ${errors.length} location${errors.length === 1 ? "" : "s"}): ` +
+          errors.map((e) => e.message).join(" | "),
+      );
+    }
   }
   cache.set(key, corpus);
   return corpus;
