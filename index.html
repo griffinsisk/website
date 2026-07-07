@@ -1221,6 +1221,22 @@
 </div>
 
 <script>
+  // ── Tiny DOM helpers, shared across the feature blocks below ───
+  // Create an element with an optional class and text content.
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  // Single-select toggle: clear `.active` on every element matching
+  // `groupSelector`, then set it on `target` (a single element, if present).
+  function activateOne(groupSelector, target) {
+    document.querySelectorAll(groupSelector).forEach((x) => x.classList.remove('active'));
+    if (target) target.classList.add('active');
+  }
+
   // Clock
   function tick() {
     const p = n => String(n).padStart(2,'0');
@@ -1239,8 +1255,7 @@
     const MIN_MS = 30;
     const MIN_DIST = 18;
     function spawnDot(cx, cy) {
-      const t = document.createElement('div');
-      t.className = 'cursor-tile';
+      const t = el('div', 'cursor-tile');
       t.style.left = cx + 'px';
       t.style.top  = cy + 'px';
       document.body.appendChild(t);
@@ -1293,10 +1308,8 @@
   function show(id) {
     const panel = document.getElementById('panel-' + id);
     if (!panel) return;
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.content-nav a').forEach(a => a.classList.remove('active'));
-    panel.classList.add('active');
-    document.getElementById('nav-' + id).classList.add('active');
+    activateOne('.panel', panel);
+    activateOne('.content-nav a', document.getElementById('nav-' + id));
   }
   function syncFromHash() {
     show((location.hash || '#about').slice(1));
@@ -1308,10 +1321,8 @@
   (() => {
     const tabs = document.querySelectorAll('.hl-tab');
     tabs.forEach((t) => t.addEventListener('click', () => {
-      tabs.forEach((x) => x.classList.remove('active'));
-      t.classList.add('active');
-      document.querySelectorAll('.hl-group').forEach((g) => g.classList.remove('active'));
-      document.getElementById('hl-' + t.dataset.g).classList.add('active');
+      activateOne('.hl-tab', t);
+      activateOne('.hl-group', document.getElementById('hl-' + t.dataset.g));
     }));
   })();
 
@@ -1327,12 +1338,10 @@
     let busy = false;
 
     function addMsg(role, text) {
-      const el = document.createElement('div');
-      el.className = 'ask-msg ask-' + role;
-      el.textContent = text;
-      log.appendChild(el);
-      el.scrollIntoView({ block: 'nearest' });
-      return el;
+      const node = el('div', 'ask-msg ask-' + role, text);
+      log.appendChild(node);
+      node.scrollIntoView({ block: 'nearest' });
+      return node;
     }
 
     // Render **bold** as <strong>; everything else as text nodes (XSS-safe).
@@ -1341,9 +1350,7 @@
       for (let i = 0; i < parts.length; i++) {
         if (!parts[i]) continue;
         if (i % 2 === 1) {
-          const b = document.createElement('strong');
-          b.textContent = parts[i];
-          parent.appendChild(b);
+          parent.appendChild(el('strong', null, parts[i]));
         } else {
           parent.appendChild(document.createTextNode(parts[i]));
         }
@@ -1352,24 +1359,24 @@
 
     // Whitelist renderer for assistant answers: paragraphs, "- " bullets, and
     // bold. Everything is built as DOM nodes from text — never innerHTML.
-    function renderAnswer(el, text) {
-      el.textContent = '';
+    function renderAnswer(container, text) {
+      container.textContent = '';
       let ul = null, p = null;
       for (const rawLine of text.split('\n')) {
         const line = rawLine.trimEnd();
         const m = line.match(/^\s*[-•*]\s+(.*)/);
         if (m) {
           p = null;
-          if (!ul) { ul = document.createElement('ul'); el.appendChild(ul); }
-          const li = document.createElement('li');
+          if (!ul) { ul = el('ul'); container.appendChild(ul); }
+          const li = el('li');
           renderInline(li, m[1]);
           ul.appendChild(li);
         } else if (!line.trim()) {
           ul = null; p = null;
         } else {
           ul = null;
-          if (!p) { p = document.createElement('p'); el.appendChild(p); }
-          else p.appendChild(document.createElement('br'));
+          if (!p) { p = el('p'); container.appendChild(p); }
+          else p.appendChild(el('br'));
           renderInline(p, line);
         }
       }

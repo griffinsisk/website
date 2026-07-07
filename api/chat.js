@@ -3,6 +3,7 @@ import { validateMessages } from "./_lib/validate.js";
 import { isRateLimited } from "./_lib/ratelimit.js";
 import { loadCorpus } from "./_lib/corpus.js";
 import { BEHAVIOR_PROMPT } from "./_lib/prompt.js";
+import { sendError, startSSE, sseSend, sseDone } from "./_lib/http.js";
 
 export const config = { supportsResponseStreaming: true };
 
@@ -13,7 +14,7 @@ const GENERIC_MSG = "Something went wrong — try again, or email griffinjsisk@g
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    res.status(405).json({ error: "Method not allowed" });
+    sendError(res, 405, "Method not allowed");
     return;
   }
 
@@ -23,13 +24,13 @@ export default async function handler(req, res) {
   const xff = String(req.headers["x-forwarded-for"] ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   const ip = String(req.headers["x-real-ip"] ?? xff[xff.length - 1] ?? "unknown");
   if (isRateLimited(ip)) {
-    res.status(429).json({ error: "Too many questions at once — give it a minute and try again." });
+    sendError(res, 429, "Too many questions at once — give it a minute and try again.");
     return;
   }
 
   const check = validateMessages(req.body?.messages);
   if (!check.ok) {
-    res.status(400).json({ error: check.error });
+    sendError(res, 400, check.error);
     return;
   }
 
@@ -38,7 +39,7 @@ export default async function handler(req, res) {
     corpus = await loadCorpus();
   } catch (err) {
     console.error("corpus load failed", err);
-    res.status(500).json({ error: GENERIC_MSG });
+    sendError(res, 500, GENERIC_MSG);
     return;
   }
 
@@ -46,8 +47,7 @@ export default async function handler(req, res) {
   // reach the API.
   const messages = req.body.messages.map((m) => ({ role: m.role, content: m.content }));
 
-  res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
-  res.setHeader("Cache-Control", "no-cache, no-transform");
+  startSSE(res);
 
   let clientGone = false;
 
@@ -78,7 +78,7 @@ export default async function handler(req, res) {
 
     for await (const event of stream) {
       if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-        res.write(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`);
+        sseSend(res, { text: event.delta.text });
       }
     }
   } catch (err) {
@@ -86,12 +86,11 @@ export default async function handler(req, res) {
       console.error("anthropic call failed", err?.status, err?.message);
       const overloaded =
         err instanceof Anthropic.APIError && (err.status === 429 || err.status === 529);
-      res.write(`data: ${JSON.stringify({ error: overloaded ? CAPACITY_MSG : GENERIC_MSG })}\n\n`);
+      sseSend(res, { error: overloaded ? CAPACITY_MSG : GENERIC_MSG });
     }
   }
 
   if (!res.writableEnded) {
-    res.write("data: [DONE]\n\n");
-    res.end();
+    sseDone(res);
   }
 }
