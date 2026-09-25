@@ -36,11 +36,11 @@
   // (worry) when positive; browLift: both brows up; browArch: right brow only (skeptical/thinking);
   // tilt: head tilt in degrees; bounce: a short hop; glow: extra glow; mouth: mouth size.
   // lookX / lookY: where the eyes point.
-  const NEUTRAL = { eye: 1, lidTop: 0, lidBottom: 0, brow: 0.6, browTilt: 0, browLift: 0, browArch: 0, tilt: 0,
+  const NEUTRAL = { eye: 1, lidTop: 0, lidBottom: 0, brow: 0, browTilt: 0, browLift: 0, browArch: 0, tilt: 0,
     bounce: 0, glow: 0, mouth: 1, smile: 1, lookX: 0, lookY: 0 };
   const MOODS = {
     neutral: NEUTRAL,
-    warm: { ...NEUTRAL, lidBottom: 0.85, browLift: 0.5, glow: 0.15, smile: 1.8 },
+    warm: { ...NEUTRAL, lidBottom: 0.85, glow: 0.15, smile: 1.8 },
     excited: { ...NEUTRAL, eye: 1.3, brow: 1, browLift: 1.6, bounce: 1, glow: 0.45, mouth: 1.2, smile: 1.8 },
     thoughtful: { ...NEUTRAL, lidTop: 0.3, brow: 1, browArch: 1.4, tilt: 8, mouth: 0.85, smile: 0.2, lookX: -4, lookY: -3 },
     apologetic: { ...NEUTRAL, eye: 0.85, lidTop: 0.45, brow: 1, browTilt: 1.5, tilt: -5, mouth: 0.75, smile: -0.8, lookY: 2.5 },
@@ -191,7 +191,7 @@
     let awake = false, peek = false, state = "asleep", mood = "neutral";
     let rafId = 0, bounceUntil = 0, nextBlink = 0, blinkUntil = 0, lastNow = 0, quietTimer = 0;
     let peakLoud = 0.2, prevLoud = 0;
-    const shown = { ...MOODS.neutral, brow: 0, eye: 0.15, open: 0, width: 0, level: 0, emph: 0, listen: 0, think: 0, peek: 0, alive: 0 };
+    const shown = { ...MOODS.neutral, eye: 0.15, open: 0, width: 0, level: 0, emph: 0, listen: 0, think: 0, peek: 0, alive: 0 };
 
     // Captions off is a per-visitor preference, so it is remembered in this browser only.
     let captionsOff = false;
@@ -307,7 +307,6 @@
       const shape = speaking ? speechShape() : { open: 0, width: 0, emph: 0 };
       return {
         ...m,
-        brow: awake ? m.brow : 0,
         emph: shape.emph,
         eye: awake ? (state === "listening" ? 1.18 : m.eye) : peek ? 0.55 : 0.15,
         open: shape.open * m.mouth * (reduced ? 0.6 : 1),
