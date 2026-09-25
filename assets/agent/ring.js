@@ -207,6 +207,7 @@
     let awake = false, peek = false, state = "asleep", mood = "neutral";
     let rafId = 0, bounceUntil = 0, nextBlink = 0, blinkUntil = 0, lastNow = 0, quietTimer = 0;
     let peakLoud = 0.2, prevLoud = 0, winkAt = -1e9, winked = false;
+    let introStart = 0, introQuietSince = 0; // timing the wink to land after "Hi, I'm Echo," 
     let pending = null, pendingTimer = 0; // a question to ask once the intro line is over
     const WINK_MS = 1100;
 
@@ -258,8 +259,9 @@
           pendingTimer = setTimeout(flushPending, prev === "speaking" ? 1200 : 2500);
         }
         if (s === "listening") mood = "neutral";
-        // The intro line just finished: a wink to say hello.
-        if (s === "listening" && prev === "speaking" && !winked) { winked = true; winkAt = performance.now(); }
+        if (s === "speaking" && !winked && !introStart) introStart = performance.now();
+        // Backstop: if the first line ended before a pause was found, wink now.
+        if (s === "listening" && prev === "speaking" && !winked) wink(performance.now());
         quietSoon(s === "listening");
         if (s === "ended") { sleep(); return; }
         if (s === "unavailable") {
@@ -338,6 +340,7 @@
       // A queued question gets a short opening line instead of the full intro.
       const opening = pending ? opts.askOpening || "Sure, happy to answer that." : null;
       awake = true; peek = false; state = "connecting"; mood = "neutral"; winked = false;
+      introStart = 0; introQuietSince = 0;
       caption.textContent = "";
       fallbackLink.hidden = true;
       panel.hidden = false;
@@ -401,9 +404,25 @@
     // The SDK's analyser is smoothed, which flattens syllables. Measuring each frame against the
     // voice's own recent peak restores the full open-to-closed range, and a rise in loudness (the
     // start of a syllable) pushes the mouth open further and lifts the brows for emphasis.
+    function wink(now) { winked = true; winkAt = now; }
+
+    // The wink lands in the first pause of the first thing the agent says, which for the intro is
+    // the comma after "Hi, I'm Echo". No word timings reach the page, so it listens for a gap of
+    // silence after at least half a second of speech, and winks at 1.6s if no gap has come.
+    function introWink(loud, now) {
+      if (winked || !introStart) return;
+      const spoken = now - introStart;
+      if (loud < TUNING.gate) {
+        if (!introQuietSince) introQuietSince = now;
+        if (spoken > 500 && now - introQuietSince > 150) wink(now);
+      } else introQuietSince = 0;
+      if (spoken > 1600) wink(now);
+    }
+
     function speechShape() {
       const full = Math.max(TUNING.gate + 0.08, peakLoud);
       const shape = mouthShape(agent.frequencies(), { ...TUNING, full });
+      introWink(shape.loud, performance.now());
       peakLoud = Math.max(shape.loud, peakLoud * 0.997, TUNING.gate + 0.08);
       const rise = clamp((shape.loud - prevLoud) * 8, 0, 1);
       prevLoud = shape.loud;
