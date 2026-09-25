@@ -130,13 +130,17 @@
       const bottom = svgEl("ellipse", { cx: x, cy: y + 16, rx: 9, ry: 9, class: "ask-ring-lid" }, parts.head);
       const brow = svgEl("path", { d: "", fill: "none", class: "ask-ring-brow", "stroke-width": 2.4,
         "stroke-linecap": "round", opacity: 0 }, parts.head);
-      return { side, x, y, eye, shine, top, bottom, brow };
+      const lash = svgEl("path", { d: "", fill: "none", class: "ask-ring-brow", "stroke-width": 3,
+        "stroke-linecap": "round", opacity: 0 }, parts.head);
+      return { side, x, y, eye, shine, top, bottom, brow, lash };
     });
     parts.mouth = svgEl("path", { class: "ask-ring-mouth", "stroke-width": 2.6, "stroke-linejoin": "round",
       "stroke-linecap": "round" }, parts.head);
     // Open, the mouth is a dark opening with a tongue inside and the lips drawn over both.
     parts.tongue = svgEl("ellipse", { cx: 100, cy: 116, rx: 5, ry: 2, class: "ask-ring-tongue", opacity: 0 }, parts.head);
     parts.lips = svgEl("path", { class: "ask-ring-lips", "stroke-width": 2.6, "stroke-linejoin": "round", opacity: 0 }, parts.head);
+    parts.sparkle = svgEl("path", { d: "M0,-7 Q1,-1 7,0 Q1,1 0,7 Q-1,1 -7,0 Q-1,-1 0,-7Z",
+      class: "ask-ring-ink", opacity: 0 }, parts.head);
     parts.dots = [0, 1, 2].map((i) => svgEl("circle", { cx: 132 + i * 9, cy: 30, r: 3, class: "ask-ring-dot", opacity: 0 }, svg));
     return parts;
   }
@@ -190,7 +194,17 @@
     // What the face is doing. `awake` is the visitor's intent; `state` comes from the call.
     let awake = false, peek = false, state = "asleep", mood = "neutral";
     let rafId = 0, bounceUntil = 0, nextBlink = 0, blinkUntil = 0, lastNow = 0, quietTimer = 0;
-    let peakLoud = 0.2, prevLoud = 0;
+    let peakLoud = 0.2, prevLoud = 0, winkAt = -1e9, winked = false;
+    const WINK_MS = 1100;
+
+    // 0 to 1: how far into the wink the face is. Snaps shut, holds, then eases open.
+    function winkAmount(now) {
+      const e = now - winkAt;
+      if (e < 0 || e > WINK_MS) return 0;
+      if (e < 110) return e / 110;
+      if (e < WINK_MS - 260) return 1;
+      return (WINK_MS - e) / 260;
+    }
     const shown = { ...MOODS.neutral, eye: 0.15, open: 0, width: 0, level: 0, emph: 0, listen: 0, think: 0, peek: 0, alive: 0 };
 
     // Captions off is a per-visitor preference, so it is remembered in this browser only.
@@ -220,8 +234,11 @@
       els: { log, status },
       onState: (s) => {
         if (!awake && (s === "listening" || s === "speaking")) { agent.end(); return; } // hung up while connecting
+        const prev = state;
         state = s;
         if (s === "listening") mood = "neutral";
+        // The intro line just finished: a wink to say hello.
+        if (s === "listening" && prev === "speaking" && !winked) { winked = true; winkAt = performance.now(); }
         quietSoon(s === "listening");
         if (s === "ended") { sleep(); return; }
         if (s === "unavailable") {
@@ -262,7 +279,7 @@
     }
 
     function wake() {
-      awake = true; peek = false; state = "connecting"; mood = "neutral";
+      awake = true; peek = false; state = "connecting"; mood = "neutral"; winked = false;
       caption.textContent = "";
       fallbackLink.hidden = true;
       panel.hidden = false;
@@ -359,7 +376,8 @@
     function render(t, now) {
       const s = shown;
       // Blinks: natural, a few seconds apart, also while speaking; never asleep or reduced.
-      if (s.alive > 0.5 && !reduced && now > nextBlink) { blinkUntil = now + 130; nextBlink = now + 2600 + Math.random() * 2600; }
+      const wk = s.alive > 0.5 ? winkAmount(now) : 0;
+      if (s.alive > 0.5 && !reduced && !wk && now > nextBlink) { blinkUntil = now + 130; nextBlink = now + 2600 + Math.random() * 2600; }
       const blinking = now < blinkUntil;
 
       const w = 5 + s.level * 7 + s.listen * 3 - (1 - s.alive) * 1;
@@ -373,32 +391,38 @@
 
       const look = s.lookX + s.think * (reduced ? 3 : Math.sin(t * 1.4) * 4 + 3);
       const lookY = s.lookY;
-      const hop = reduced ? 0 : s.bounce * Math.abs(Math.sin(t * 9)) * -6;
+      const hop = reduced ? 0 : s.bounce * Math.abs(Math.sin(t * 9)) * -6 - wk * 4;
       const breathe = s.alive * Math.sin(t * (reduced ? 0.6 : 1.6)) * 0.8;
       const nod = reduced ? 0 : -s.emph * 2.5;
       // Talking stretches the face a little, the way a real jaw drops.
       const sx = 1 - s.open * 0.02, sy = 1 + (reduced ? 0 : s.open * 0.05);
-      face.head.setAttribute("transform", `translate(0 ${(hop + breathe + nod).toFixed(2)}) rotate(${s.tilt.toFixed(2)} 100 100) ` +
+      face.head.setAttribute("transform", `translate(0 ${(hop + breathe + nod).toFixed(2)}) rotate(${(s.tilt + wk * 9).toFixed(2)} 100 100) ` +
         `translate(100 100) scale(${sx.toFixed(3)} ${sy.toFixed(3)}) translate(-100 -100)`);
 
       for (const e of face.eyes) {
-        const x = e.x + look, y = e.y + lookY, ry = blinking ? 0.8 : Math.max(0.8, 8 * s.eye);
+        // The wink closes the right eye into a happy curve and widens the left.
+        const winking = e.side > 0 ? wk : 0;
+        const x = e.x + look, y = e.y + lookY;
+        const ry = blinking ? 0.8 : Math.max(0.8, 8 * s.eye * (e.side > 0 ? 1 - wk : 1 + wk * 0.15));
+        e.eye.setAttribute("opacity", (1 - winking).toFixed(2));
+        e.lash.setAttribute("d", `M${(x - 7).toFixed(1)},${(y + 1).toFixed(1)} Q${x.toFixed(1)},${(y - 7 * winking).toFixed(1)} ${(x + 7).toFixed(1)},${(y + 1).toFixed(1)}`);
+        e.lash.setAttribute("opacity", winking.toFixed(2));
         e.eye.setAttribute("cx", x.toFixed(2));
         e.eye.setAttribute("cy", y.toFixed(2));
         e.eye.setAttribute("ry", ry.toFixed(2));
         e.shine.setAttribute("cx", (x + 2).toFixed(2));
         e.shine.setAttribute("cy", (y - 3 * s.eye).toFixed(2));
-        e.shine.setAttribute("opacity", blinking || s.eye < 0.4 ? 0 : 0.9);
+        e.shine.setAttribute("opacity", blinking || s.eye < 0.4 || winking > 0.3 ? 0 : 0.9);
         e.top.setAttribute("cx", x.toFixed(2));
         e.top.setAttribute("cy", (e.y - 16 + s.lidTop * 7).toFixed(2));
         e.bottom.setAttribute("cx", x.toFixed(2));
         e.bottom.setAttribute("cy", (e.y + 16 - s.lidBottom * 7).toFixed(2));
         // Brows: inner end is the one nearest the middle of the face.
-        const by = e.y - 14 - s.browLift * 3 - s.emph * 3 - (e.side > 0 ? s.browArch * 4 : 0);
+        const by = e.y - 14 - s.browLift * 3 - s.emph * 3 - (e.side > 0 ? s.browArch * 4 : 0) + e.side * wk * 3.5 - wk * 1;
         const inner = by - s.browTilt * 3.5, outer = by + s.browTilt * 2;
         const xi = x - e.side * 3, xo = x + e.side * 6;
         e.brow.setAttribute("d", `M${xi.toFixed(1)},${inner.toFixed(1)} L${xo.toFixed(1)},${outer.toFixed(1)}`);
-        e.brow.setAttribute("opacity", (s.brow * s.alive).toFixed(2));
+        e.brow.setAttribute("opacity", (Math.max(s.brow, wk) * s.alive).toFixed(2));
       }
 
       // Speaking: shape from the audio. Otherwise a resting mouth whose curve follows the mood.
@@ -420,11 +444,16 @@
       } else {
         face.lips.setAttribute("opacity", 0);
         face.tongue.setAttribute("opacity", 0);
-        const smile = s.smile * (0.4 + 0.6 * Math.max(s.alive, s.peek));
+        const smile = s.smile * (0.4 + 0.6 * Math.max(s.alive, s.peek)) + wk * 1.6;
         const half = 10 * s.mouth;
         face.mouth.setAttribute("d", `M${(100 - half).toFixed(1)},109 Q100,${(109 + smile * 6).toFixed(1)} ${(100 + half).toFixed(1)},109`);
         face.mouth.classList.remove("ask-ring-mouth-open");
       }
+
+      // A little sparkle pops out beside the winking eye.
+      const pop = reduced ? wk : Math.sin(Math.min(1, wk) * Math.PI / 2) * (1 + 0.25 * Math.sin(now / 60));
+      face.sparkle.setAttribute("transform", `translate(${(134 + look).toFixed(1)} ${(78 + lookY).toFixed(1)}) rotate(${(wk * 45).toFixed(1)}) scale(${(pop * 0.9).toFixed(2)})`);
+      face.sparkle.setAttribute("opacity", wk.toFixed(2));
 
       face.dots.forEach((c, i) => c.setAttribute("opacity", s.think > 0.5 && !reduced
         ? (0.35 + 0.65 * Math.max(0, Math.sin(t * 4 - i * 0.9))).toFixed(2) : (s.think * 0.6).toFixed(2)));
