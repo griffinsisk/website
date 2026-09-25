@@ -242,13 +242,14 @@
 
     // A second start while one is still connecting waits for it instead of opening another session.
     let starting = null;
-    function start(textOnly) {
+    // opening: optional first line that replaces the agent's intro for this conversation.
+    function start(textOnly, opening) {
       if (conversation) return Promise.resolve();
-      if (!starting) starting = connect(textOnly).finally(() => { starting = null; });
+      if (!starting) starting = connect(textOnly, opening).finally(() => { starting = null; });
       return starting;
     }
 
-    async function connect(textOnly) {
+    async function connect(textOnly, opening) {
       mode = textOnly ? "text" : "voice";
       if (liveEnd) liveEnd();
       liveEnd = end;
@@ -261,6 +262,7 @@
           agentId: opts.agentId,
           textOnly,
           clientTools: tools,
+          ...(opening ? { overrides: { agent: { firstMessage: opening } } } : {}),
           workletPaths: {
             rawAudioProcessor: `${opts.workletBase}rawAudioProcessor.js`,
             audioConcatProcessor: `${opts.workletBase}audioConcatProcessor.js`,
@@ -297,6 +299,7 @@
             if (els.stop) els.stop.disabled = true;
             // Hanging up before the agent spoke is the visitor's choice, not a failure.
             if (agentSpoke || endedByVisitor) { status("Conversation ended. Start again anytime."); setState("ended"); return; }
+            if (opening) { retryPlain(); return; }
             fallBack();
           },
         });
@@ -308,8 +311,15 @@
         conversation = null;
         if (liveEnd === end) liveEnd = null;
         if (endedByVisitor) { setState("ended"); return; } // another surface took over mid-connect
+        if (opening) { retryPlain(); return; }
         fallBack();
       }
+    }
+
+    // An agent that doesn't allow a custom opening line rejects the session; try again with its own.
+    function retryPlain() {
+      console.warn("ask-agent: custom opening line refused; starting with the agent's own intro");
+      setTimeout(() => connect(mode === "text"), 0);
     }
 
     // The ladder: voice fails -> offer text; text fails -> static contact card, which costs nothing.

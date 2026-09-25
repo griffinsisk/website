@@ -10,6 +10,8 @@
 //     textHref: "#ask",                     // optional; where to type instead when voice fails
 //     disclosure: "AI assistant built with ...",   // optional; shown under the tooltip
 //     nudgeAfter: 6000,                     // optional; ms before a one-time, silent invitation
+//     askOpening: "Sure.",                  // optional; the short line spoken before a queued
+//                                           // question, instead of the full intro
 //   });
 //
 // Returns { talk(), ask(text), sleep(), dismissNudge() }. ask() wakes the Ring and asks that
@@ -247,9 +249,13 @@
         const prev = state;
         state = s;
         // Ask a queued question after the intro. If the agent has no intro, ask it shortly anyway.
+        // The SDK can flick to listening in the pause between sentences, so wait for real quiet
+        // before asking; resuming speech cancels the wait.
         if (s === "speaking") clearTimeout(pendingTimer);
-        if (s === "listening" && prev === "connecting" && pending) pendingTimer = setTimeout(flushPending, 2500);
-        if (s === "listening" && prev === "speaking") flushPending();
+        if (s === "listening" && pending) {
+          clearTimeout(pendingTimer);
+          pendingTimer = setTimeout(flushPending, prev === "speaking" ? 1200 : 2500);
+        }
         if (s === "listening") mood = "neutral";
         // The intro line just finished: a wink to say hello.
         if (s === "listening" && prev === "speaking" && !winked) { winked = true; winkAt = performance.now(); }
@@ -327,6 +333,8 @@
 
     function wake() {
       dismissNudge();
+      // A queued question gets a short opening line instead of the full intro.
+      const opening = pending ? opts.askOpening || "Sure, happy to answer that." : null;
       awake = true; peek = false; state = "connecting"; mood = "neutral"; winked = false;
       caption.textContent = "";
       fallbackLink.hidden = true;
@@ -334,7 +342,7 @@
       root.classList.remove("ask-ring-peek");
       label();
       wakeLoop();
-      agent.start(false);
+      agent.start(false, opening);
     }
 
     function sleep() {
