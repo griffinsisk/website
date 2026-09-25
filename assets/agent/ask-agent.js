@@ -5,9 +5,18 @@
 //     agentId: "agent_...",
 //     data: candidateJson,                  // dist/candidate.json from scripts/build_agents.py
 //     workletBase: "/vendor/elevenlabs/",   // self-hosted worklets for a strict CSP
-//     els: { log, form, input, voice, stop, status },   // cards appear inline in the log
+//     els: { log, form, input, voice, stop, status },   // cards appear inline in the log;
+//                                           // form and input are optional (a voice-only surface)
 //     navigate: (section) => { ... },       // optional; defaults to location.hash = section
+//     reveal: (kind, id, node) => { ... },  // optional; how the page shows one of its own items
+//     onState: (state) => { ... },          // optional; connecting | listening | thinking |
+//                                           // speaking | ended | unavailable
+//     onAgentText: (text) => { ... },       // optional; each full agent reply as text
+//     onCard: (node) => { ... },            // optional; a card was just added to the log
 //   });
+//
+// show_project and show_story point at the page's own item when it has one, marked up as
+// data-agent-target="project:<id>" or "story:<id>"; otherwise they show a card in the log.
 (function () {
   function el(tag, className, text) {
     const node = document.createElement(tag);
@@ -52,13 +61,34 @@
     return a;
   }
 
+  // Find the page's own copy of a project or story and show it. Returns false when the page has none.
+  function revealOnPage(opts, kind, id) {
+    const node = document.querySelector(`[data-agent-target="${kind}:${CSS.escape(id)}"]`);
+    if (!node) return false;
+    if (opts.reveal) opts.reveal(kind, id, node);
+    else {
+      node.scrollIntoView({ behavior: "smooth", block: "center" });
+      node.classList.remove("agent-spotlight");
+      void node.offsetWidth; // restart the highlight if it is already showing
+      node.classList.add("agent-spotlight");
+    }
+    return true;
+  }
+
+  // Where on the page an item sits, in words the agent can say ("in the Projects section").
+  function placeOf(kind) {
+    return kind === "project" ? "in the Projects section" : "in the Highlights section";
+  }
+
   function mount(opts) {
     const { els, data } = opts;
     let conversation = null;
     let mode = null;
     let agentSpoke = false;
     let streaming = null;
+    let endedByVisitor = false;
 
+    const setState = (s) => opts.onState && opts.onState(s);
     const status = (text) => { els.status.textContent = text; };
     const addMsg = (role, text) => {
       const msg = el("div", `ask-msg ask-${role}`, text);
@@ -75,6 +105,7 @@
       }
       els.log.append(node);
       node.scrollIntoView({ block: "nearest" });
+      if (opts.onCard) opts.onCard(node);
     };
 
     // Calendly needs room for its desktop layout, so it opens in one overlay, never stacked.
@@ -118,6 +149,12 @@
       show_project({ project_id }) {
         const p = data.projects[project_id];
         if (!p) return `There is no project with the id ${project_id}.`;
+        if (revealOnPage(opts, "project", project_id)) {
+          const linkNote = Object.keys(p.links).length
+            ? `Its links to the ${Object.keys(p.links).join(" and ")} are on the page.`
+            : "It has no public links.";
+          return `The ${p.title} project is now highlighted on the page, ${placeOf("project")}. ${p.one_liner} ${linkNote}`;
+        }
         const card = el("div", "ask-card");
         card.append(el("strong", "", p.title), el("p", "", p.one_liner));
         const links = el("div", "ask-card-links");
@@ -134,6 +171,11 @@
       show_story({ story_id }) {
         const st = (data.stories || {})[story_id];
         if (!st) return `There is no story with the id ${story_id}.`;
+        if (revealOnPage(opts, "story", story_id)) {
+          const who = st.customer.charAt(0).toLowerCase() + st.customer.slice(1);
+          return `The story about ${who} (${st.headline}) is now open and highlighted on the page, ` +
+            `${placeOf("story")}, with the full write-up. Its key numbers: ${st.stats.join("; ")}.`;
+        }
         const card = el("div", "ask-card ask-story");
         card.append(el("span", "ask-story-customer", st.customer), el("strong", "", st.headline));
         const stats = el("ul", "ask-story-stats");
@@ -189,14 +231,17 @@
     function staticFallback() {
       status("");
       showCard(contactCard(`The assistant is resting right now. You can still reach ${data.name} directly:`), "fallback");
-      els.voice.disabled = true;
-      els.input.disabled = true;
+      if (els.voice) els.voice.disabled = true;
+      if (els.input) els.input.disabled = true;
+      setState("unavailable");
     }
 
     async function start(textOnly) {
       if (conversation) return;
       mode = textOnly ? "text" : "voice";
       agentSpoke = false;
+      endedByVisitor = false;
+      setState("connecting");
       status(textOnly ? "Connecting..." : "Connecting... allow the microphone when asked.");
       try {
         conversation = await ElevenLabsClient.Conversation.startSession({
@@ -207,10 +252,23 @@
             rawAudioProcessor: `${opts.workletBase}rawAudioProcessor.js`,
             audioConcatProcessor: `${opts.workletBase}audioConcatProcessor.js`,
           },
-          onConnect: () => { status(textOnly ? "Connected. Type a question." : "Listening. Ask anything."); els.stop.disabled = false; },
-          onModeChange: ({ mode: m }) => { if (!textOnly) status(m === "speaking" ? "Speaking..." : "Listening."); },
+          onConnect: () => {
+            status(textOnly ? "Connected. Type a question." : "Listening. Ask anything.");
+            if (els.stop) els.stop.disabled = false;
+            setState("listening");
+          },
+          onModeChange: ({ mode: m }) => {
+            if (textOnly) return;
+            status(m === "speaking" ? "Speaking..." : "Listening.");
+            setState(m === "speaking" ? "speaking" : "listening");
+          },
           onMessage: ({ source, message }) => {
-            if (source === "ai") agentSpoke = true;
+            if (source === "ai") {
+              agentSpoke = true;
+              if (opts.onAgentText) opts.onAgentText(message);
+            }
+            // In voice, the visitor's words arrive once they stop talking; the agent is now working.
+            if (source === "user" && !textOnly) setState("thinking");
             if (textOnly && source === "ai") return; // text replies arrive as streamed parts below
             addMsg(source === "ai" ? "assistant" : "user", message);
           },
@@ -222,8 +280,9 @@
           onError: (message) => console.warn("ask-agent error:", message),
           onDisconnect: () => {
             conversation = null;
-            els.stop.disabled = true;
-            if (agentSpoke) { status("Conversation ended. Start again anytime."); return; }
+            if (els.stop) els.stop.disabled = true;
+            // Hanging up before the agent spoke is the visitor's choice, not a failure.
+            if (agentSpoke || endedByVisitor) { status("Conversation ended. Start again anytime."); setState("ended"); return; }
             fallBack();
           },
         });
@@ -236,13 +295,18 @@
 
     // The ladder: voice fails -> offer text; text fails -> static contact card, which costs nothing.
     function fallBack() {
-      if (mode === "voice") status("Voice isn't available right now. You can type your question instead.");
+      if (mode === "voice") { status("Voice isn't available right now. You can type your question instead."); setState("unavailable"); }
       else staticFallback();
     }
 
-    els.voice.addEventListener("click", () => start(false));
-    els.stop.addEventListener("click", () => conversation && conversation.endSession());
-    els.form.addEventListener("submit", async (e) => {
+    if (els.voice) els.voice.addEventListener("click", () => start(false));
+    const end = () => {
+      if (!conversation) return;
+      endedByVisitor = true;
+      conversation.endSession();
+    };
+    if (els.stop) els.stop.addEventListener("click", end);
+    if (els.form) els.form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const text = els.input.value.trim();
       if (!text) return;
@@ -253,7 +317,16 @@
       conversation.sendUserMessage(text);
     });
 
-    return { tools, start, end: () => conversation && conversation.endSession() };
+    const EMPTY = new Uint8Array(0);
+    return {
+      tools,
+      start,
+      end,
+      active: () => Boolean(conversation),
+      // The audio the visitor is hearing right now: 1024 bins spanning 100 Hz to 8 kHz (voice only).
+      frequencies: () => (conversation && mode === "voice" ? conversation.getOutputByteFrequencyData() : EMPTY),
+      volume: () => (conversation && mode === "voice" ? conversation.getOutputVolume() : 0),
+    };
   }
 
   window.AskAgent = { mount };

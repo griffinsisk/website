@@ -1,0 +1,137 @@
+/* candidate-voice Ring and cards. Theme it by overriding these on :root or .ask-ring. */
+:root {
+  --ring-accent: #00d4b4;
+  --ring-bg: #101718;
+  --ring-panel: #151b1c;
+  --ring-line: rgba(255, 255, 255, 0.1);
+  --ring-ink: #e8efee;
+  --ring-muted: #8fa3a1;
+}
+
+.ask-ring {
+  position: fixed;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  font: 14px/1.5 system-ui, sans-serif;
+  color: var(--ring-ink);
+  pointer-events: none; /* only the visible parts take clicks */
+}
+.ask-ring > * { pointer-events: auto; }
+
+/* The Ring itself: a still icon until clicked. */
+.ask-ring-button {
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  color: var(--ring-accent);
+  transition: transform 0.2s ease;
+}
+.ask-ring-button svg { width: 100%; height: 100%; overflow: visible; display: block; }
+.ask-ring-button:hover,
+.ask-ring-button:focus-visible { transform: scale(1.06); }
+.ask-ring-button:focus-visible { outline: 2px solid var(--ring-accent); outline-offset: 4px; }
+
+.ask-ring-disc, .ask-ring-lid { fill: var(--ring-bg); }
+.ask-ring-stroke { stroke: var(--ring-accent); }
+.ask-ring-arc { stroke: #8ff7e5; }
+.ask-ring-ink { fill: var(--ring-accent); }
+.ask-ring-brow { stroke: var(--ring-accent); }
+.ask-ring-mouth { fill: none; stroke: var(--ring-accent); }
+.ask-ring-mouth.ask-ring-mouth-open { fill: var(--ring-accent); }
+.ask-ring-dot { fill: var(--ring-ink); }
+
+/* Hover or focus explains what it is. On touch screens the first tap does (.ask-ring-peek). */
+.ask-ring-tip {
+  max-width: 240px;
+  padding: 8px 12px;
+  border: 1px solid var(--ring-line);
+  border-radius: 8px;
+  background: var(--ring-panel);
+  color: var(--ring-ink);
+  font-size: 13px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  pointer-events: none;
+}
+.ask-ring[data-state="asleep"]:has(.ask-ring-button:hover) .ask-ring-tip,
+.ask-ring[data-state="asleep"]:has(.ask-ring-button:focus-visible) .ask-ring-tip,
+.ask-ring[data-state="asleep"].ask-ring-peek .ask-ring-tip { opacity: 1; transform: none; }
+
+/* Awake: the caption bubble and the transcript. */
+.ask-ring-panel {
+  width: min(340px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ask-ring-panel[hidden] { display: none; }
+.ask-ring-bubble, .ask-ring-log {
+  border: 1px solid var(--ring-line);
+  border-radius: 12px;
+  background: var(--ring-panel);
+  padding: 12px 14px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+.ask-ring-caption { margin: 0; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.ask-ring-caption:empty { display: none; }
+.ask-ring-status { margin: 0; color: var(--ring-muted); font-size: 12px; }
+.ask-ring-caption:not(:empty) + .ask-ring-status { margin-top: 6px; }
+.ask-ring-actions { display: flex; gap: 8px; margin-top: 10px; }
+.ask-ring-action {
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 10px;
+  border: 1px solid var(--ring-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ring-ink);
+  cursor: pointer;
+}
+.ask-ring-action:hover { border-color: var(--ring-accent); color: var(--ring-accent); }
+.ask-ring-log { max-height: min(50vh, 420px); overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.ask-ring-log[hidden] { display: none; }
+.ask-ring-log .ask-msg { margin: 0; white-space: pre-wrap; font-size: 13px; }
+.ask-ring-log .ask-user { color: var(--ring-ink); }
+.ask-ring-log .ask-assistant { color: var(--ring-muted); }
+
+/* Cards and the booking overlay, shared by every surface the embed draws into. */
+.ask-card { border: 1px solid var(--ring-accent); border-radius: 8px; padding: 12px 14px; }
+.ask-card p { margin: 6px 0 0; color: var(--ring-muted); }
+.ask-card strong { display: block; }
+.ask-card-links { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; }
+.ask-card-link {
+  font: inherit;
+  color: var(--ring-accent);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ask-story-customer { display: block; font-size: 12px; color: var(--ring-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.ask-story-stats { margin: 8px 0 0; padding-left: 18px; }
+.ask-overlay { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.6); }
+.ask-overlay-panel { position: relative; width: min(1000px, 94vw); height: min(720px, 90vh); background: #fff; border-radius: 10px; overflow: hidden; }
+.ask-overlay-panel iframe { width: 100%; height: 100%; border: 0; }
+.ask-overlay-close { position: absolute; top: 10px; right: 10px; z-index: 1; font: inherit; padding: 6px 12px; border-radius: 6px; border: 1px solid #ccc; background: #fff; color: #111; cursor: pointer; }
+
+/* Phones: centered at the bottom, clear of the home indicator. */
+@media (max-width: 640px) {
+  .ask-ring { right: 0; left: 0; align-items: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ask-ring-button, .ask-ring-tip { transition: none; }
+  .ask-ring-button:hover, .ask-ring-button:focus-visible { transform: none; }
+}
