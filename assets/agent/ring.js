@@ -35,14 +35,16 @@
   // lids close (a raised lower lid reads as a smile); brow: brow visibility; browTilt: inner ends up
   // (worry) when positive; browLift: both brows up; browArch: right brow only (skeptical/thinking);
   // tilt: head tilt in degrees; bounce: a short hop; glow: extra glow; mouth: mouth size.
-  const NEUTRAL = { eye: 1, lidTop: 0, lidBottom: 0, brow: 0, browTilt: 0, browLift: 0, browArch: 0, tilt: 0, bounce: 0, glow: 0, mouth: 1, smile: 1 };
+  // lookX / lookY: where the eyes point.
+  const NEUTRAL = { eye: 1, lidTop: 0, lidBottom: 0, brow: 0.6, browTilt: 0, browLift: 0, browArch: 0, tilt: 0,
+    bounce: 0, glow: 0, mouth: 1, smile: 1, lookX: 0, lookY: 0 };
   const MOODS = {
     neutral: NEUTRAL,
-    warm: { ...NEUTRAL, lidBottom: 0.5, glow: 0.1, smile: 1.4 },
-    excited: { ...NEUTRAL, eye: 1.2, brow: 1, browLift: 1, bounce: 1, glow: 0.35, mouth: 1.15, smile: 1.4 },
-    thoughtful: { ...NEUTRAL, lidTop: 0.2, brow: 1, browArch: 1, tilt: 6, mouth: 0.85, smile: 0.3 },
-    apologetic: { ...NEUTRAL, eye: 0.9, lidTop: 0.3, brow: 1, browTilt: 1, tilt: -3, mouth: 0.7, smile: -0.4 },
-    curious: { ...NEUTRAL, eye: 1.15, brow: 1, browLift: 1, tilt: -8, smile: 0.5 },
+    warm: { ...NEUTRAL, lidBottom: 0.85, browLift: 0.5, glow: 0.15, smile: 1.8 },
+    excited: { ...NEUTRAL, eye: 1.3, brow: 1, browLift: 1.6, bounce: 1, glow: 0.45, mouth: 1.2, smile: 1.8 },
+    thoughtful: { ...NEUTRAL, lidTop: 0.3, brow: 1, browArch: 1.4, tilt: 8, mouth: 0.85, smile: 0.2, lookX: -4, lookY: -3 },
+    apologetic: { ...NEUTRAL, eye: 0.85, lidTop: 0.45, brow: 1, browTilt: 1.5, tilt: -5, mouth: 0.75, smile: -0.8, lookY: 2.5 },
+    curious: { ...NEUTRAL, eye: 1.25, brow: 1, browLift: 1.4, browArch: 0.6, tilt: -10, smile: 0.5, lookX: 2 },
   };
 
   // ── Mouth from the audio ────────────────────────────────────────────────────
@@ -70,14 +72,14 @@
 
   // open: 0 (closed) to 1 (fully open). width: -1 (round "oo") through 0 ("ah") to 1 (wide "ee").
   function mouthShape(freq, tuning = TUNING) {
-    if (!freq || !freq.length) return { open: 0, width: 0 };
+    if (!freq || !freq.length) return { open: 0, width: 0, loud: 0 };
     const low = bandMean(freq, BANDS.low), mid = bandMean(freq, BANDS.mid), high = bandMean(freq, BANDS.high);
     const loud = 0.5 * low + 0.35 * mid + 0.15 * high;
-    if (loud < tuning.gate) return { open: 0, width: 0 };
+    if (loud < tuning.gate) return { open: 0, width: 0, loud };
     const open = clamp((loud - tuning.gate) / (tuning.full - tuning.gate), 0, 1);
     const bright = (mid + 2 * high) / (low + mid + high + 1e-6);
     const width = clamp((bright - tuning.brightMid) / tuning.brightSpan, -1, 1);
-    return { open, width };
+    return { open, width, loud };
   }
 
   // An open mouth: upper and lower lip as curves between two corners. round (0 to 1) lifts the
@@ -121,7 +123,7 @@
     parts.head = svgEl("g", {}, svg);
     parts.eyes = [-1, 1].map((side) => {
       const x = 100 + side * 17, y = 96;
-      const eye = svgEl("ellipse", { cx: x, cy: y, rx: 5.5, ry: 7, class: "ask-ring-ink" }, parts.head);
+      const eye = svgEl("ellipse", { cx: x, cy: y, rx: 6.5, ry: 8, class: "ask-ring-ink" }, parts.head);
       const shine = svgEl("circle", { cx: x + 1.8, cy: y - 2.6, r: 1.7, fill: "#fff", opacity: 0.9 }, parts.head);
       // Lids are disc-colored shapes that slide over the eye from above and below.
       const top = svgEl("ellipse", { cx: x, cy: y - 16, rx: 9, ry: 9, class: "ask-ring-lid" }, parts.head);
@@ -130,8 +132,11 @@
         "stroke-linecap": "round", opacity: 0 }, parts.head);
       return { side, x, y, eye, shine, top, bottom, brow };
     });
-    parts.mouth = svgEl("path", { class: "ask-ring-mouth", "stroke-width": 2.4, "stroke-linejoin": "round",
+    parts.mouth = svgEl("path", { class: "ask-ring-mouth", "stroke-width": 2.6, "stroke-linejoin": "round",
       "stroke-linecap": "round" }, parts.head);
+    // Open, the mouth is a dark opening with a tongue inside and the lips drawn over both.
+    parts.tongue = svgEl("ellipse", { cx: 100, cy: 116, rx: 5, ry: 2, class: "ask-ring-tongue", opacity: 0 }, parts.head);
+    parts.lips = svgEl("path", { class: "ask-ring-lips", "stroke-width": 2.6, "stroke-linejoin": "round", opacity: 0 }, parts.head);
     parts.dots = [0, 1, 2].map((i) => svgEl("circle", { cx: 132 + i * 9, cy: 30, r: 3, class: "ask-ring-dot", opacity: 0 }, svg));
     return parts;
   }
@@ -152,6 +157,9 @@
     const fallbackLink = el("a", "ask-card-link", "Go to text chat");
     fallbackLink.hidden = true;
     if (opts.textHref) fallbackLink.href = opts.textHref;
+    const hideBtn = el("button", "ask-ring-hide", "×");
+    hideBtn.type = "button";
+    hideBtn.setAttribute("aria-label", "Hide captions");
     const actions = el("div", "ask-ring-actions");
     const toggle = el("button", "ask-ring-action", "Transcript");
     toggle.type = "button";
@@ -159,7 +167,7 @@
     const endBtn = el("button", "ask-ring-action", "End");
     endBtn.type = "button";
     actions.append(toggle, endBtn);
-    bubble.append(caption, status, fallbackLink, actions);
+    bubble.append(hideBtn, caption, status, fallbackLink, actions);
     const log = el("div", "ask-ring-log");
     log.hidden = true;
     log.id = "ask-ring-log";
@@ -174,13 +182,34 @@
     button.setAttribute("aria-describedby", tip.id);
     const svg = svgEl("svg", { viewBox: "0 0 200 200", "aria-hidden": "true", focusable: "false" }, button);
     const face = drawFace(svg);
-    root.append(panel, tip, button);
+    const ccBtn = el("button", "ask-ring-cc", "Show captions");
+    ccBtn.type = "button";
+    root.append(panel, tip, button, ccBtn);
     document.body.append(root);
 
     // What the face is doing. `awake` is the visitor's intent; `state` comes from the call.
     let awake = false, peek = false, state = "asleep", mood = "neutral";
-    let rafId = 0, bounceUntil = 0, nextBlink = 0, blinkUntil = 0, lastNow = 0;
-    const shown = { ...MOODS.neutral, eye: 0.15, open: 0, width: 0, level: 0, look: 0, listen: 0, think: 0, peek: 0, alive: 0 };
+    let rafId = 0, bounceUntil = 0, nextBlink = 0, blinkUntil = 0, lastNow = 0, quietTimer = 0;
+    let peakLoud = 0.2, prevLoud = 0;
+    const shown = { ...MOODS.neutral, brow: 0, eye: 0.15, open: 0, width: 0, level: 0, emph: 0, listen: 0, think: 0, peek: 0, alive: 0 };
+
+    // Captions off is a per-visitor preference, so it is remembered in this browser only.
+    let captionsOff = false;
+    try { captionsOff = localStorage.getItem("ask-ring-captions") === "off"; } catch {}
+    function setCaptions(on) {
+      captionsOff = !on;
+      root.classList.toggle("ask-ring-nocaptions", captionsOff);
+      try { localStorage.setItem("ask-ring-captions", on ? "on" : "off"); } catch {}
+    }
+    setCaptions(!captionsOff);
+
+    // The caption steps out of the way a few seconds after the agent stops talking. Hovering the
+    // Ring brings it back; so does the next reply.
+    function quietSoon(on) {
+      clearTimeout(quietTimer);
+      root.classList.remove("ask-ring-quiet");
+      if (on) quietTimer = setTimeout(() => { if (log.hidden) root.classList.add("ask-ring-quiet"); }, 5000);
+    }
 
     const agent = AskAgent.mount({
       agentId: opts.agentId,
@@ -193,6 +222,7 @@
         if (!awake && (s === "listening" || s === "speaking")) { agent.end(); return; } // hung up while connecting
         state = s;
         if (s === "listening") mood = "neutral";
+        quietSoon(s === "listening");
         if (s === "ended") { sleep(); return; }
         if (s === "unavailable") {
           mood = "apologetic";
@@ -208,7 +238,12 @@
         if (mood === "excited") bounceUntil = performance.now() + 900;
       },
       // A card the agent says is on screen must be visible, so open the transcript it lands in.
-      onCard: (node) => { showTranscript(true); node.scrollIntoView({ block: "nearest" }); },
+      onCard: (node) => {
+        setCaptions(true);
+        quietSoon(false);
+        showTranscript(true);
+        node.scrollIntoView({ block: "nearest" });
+      },
     });
 
     function label() {
@@ -239,6 +274,7 @@
 
     function sleep() {
       awake = false; state = "asleep"; mood = "neutral";
+      quietSoon(false);
       agent.end();
       panel.hidden = true;
       label();
@@ -257,7 +293,9 @@
     button.addEventListener("focus", () => setPeek(true));
     button.addEventListener("blur", () => { setPeek(false); root.classList.remove("ask-ring-peek"); });
     endBtn.addEventListener("click", sleep);
-    toggle.addEventListener("click", () => showTranscript(log.hidden));
+    toggle.addEventListener("click", () => { showTranscript(log.hidden); quietSoon(false); });
+    hideBtn.addEventListener("click", () => { showTranscript(false); setCaptions(false); button.focus(); });
+    ccBtn.addEventListener("click", () => { setCaptions(true); quietSoon(false); });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && awake) sleep(); });
 
     // ── Animation: runs only while awake or while easing into or out of rest ──
@@ -266,9 +304,11 @@
     function targets(now) {
       const m = MOODS[awake ? mood : "neutral"];
       const speaking = awake && state === "speaking";
-      const shape = speaking ? mouthShape(agent.frequencies()) : { open: 0, width: 0 };
+      const shape = speaking ? speechShape() : { open: 0, width: 0, emph: 0 };
       return {
         ...m,
+        brow: awake ? m.brow : 0,
+        emph: shape.emph,
         eye: awake ? (state === "listening" ? 1.18 : m.eye) : peek ? 0.55 : 0.15,
         open: shape.open * m.mouth * (reduced ? 0.6 : 1),
         width: shape.width,
@@ -279,6 +319,19 @@
         alive: awake ? 1 : 0,
         bounce: now < bounceUntil && !reduced ? 1 : 0,
       };
+    }
+
+    // The SDK's analyser is smoothed, which flattens syllables. Measuring each frame against the
+    // voice's own recent peak restores the full open-to-closed range, and a rise in loudness (the
+    // start of a syllable) pushes the mouth open further and lifts the brows for emphasis.
+    function speechShape() {
+      const full = Math.max(TUNING.gate + 0.08, peakLoud);
+      const shape = mouthShape(agent.frequencies(), { ...TUNING, full });
+      peakLoud = Math.max(shape.loud, peakLoud * 0.997, TUNING.gate + 0.08);
+      const rise = clamp((shape.loud - prevLoud) * 8, 0, 1);
+      prevLoud = shape.loud;
+      if (!shape.open) return { open: 0, width: 0, emph: 0 };
+      return { open: clamp(Math.pow(shape.open, 0.7) + rise * 0.35, 0, 1), width: shape.width, emph: rise };
     }
 
     function frame(now) {
@@ -292,7 +345,8 @@
       let moving = false;
       for (const k in goal) {
         let rate = ease;
-        if (k === "open") rate = goal.open > shown.open ? 0.65 : 0.45;
+        if (k === "open") rate = goal.open > shown.open ? 0.8 : 0.55;
+        if (k === "emph") rate = goal.emph > shown.emph ? 0.7 : 0.15;
         if (k === "width") rate = 0.35;
         const d = goal[k] - shown[k];
         if (Math.abs(d) > 0.002) moving = true;
@@ -318,40 +372,58 @@
       face.glow.setAttribute("opacity", (s.alive * (0.8 + s.glow) + s.peek * 0.5).toFixed(2));
       face.ring.setAttribute("opacity", (0.7 + 0.3 * Math.max(s.alive, s.peek)).toFixed(2));
 
-      const look = s.think * (reduced ? 3 : Math.sin(t * 1.4) * 4 + 3);
-      const hop = reduced ? 0 : s.bounce * Math.abs(Math.sin(t * 9)) * -4;
+      const look = s.lookX + s.think * (reduced ? 3 : Math.sin(t * 1.4) * 4 + 3);
+      const lookY = s.lookY;
+      const hop = reduced ? 0 : s.bounce * Math.abs(Math.sin(t * 9)) * -6;
       const breathe = s.alive * Math.sin(t * (reduced ? 0.6 : 1.6)) * 0.8;
-      face.head.setAttribute("transform", `translate(0 ${(hop + breathe).toFixed(2)}) rotate(${s.tilt.toFixed(2)} 100 100)`);
+      const nod = reduced ? 0 : -s.emph * 2.5;
+      // Talking stretches the face a little, the way a real jaw drops.
+      const sx = 1 - s.open * 0.02, sy = 1 + (reduced ? 0 : s.open * 0.05);
+      face.head.setAttribute("transform", `translate(0 ${(hop + breathe + nod).toFixed(2)}) rotate(${s.tilt.toFixed(2)} 100 100) ` +
+        `translate(100 100) scale(${sx.toFixed(3)} ${sy.toFixed(3)}) translate(-100 -100)`);
 
       for (const e of face.eyes) {
-        const x = e.x + look, ry = blinking ? 0.8 : Math.max(0.8, 7 * s.eye);
+        const x = e.x + look, y = e.y + lookY, ry = blinking ? 0.8 : Math.max(0.8, 8 * s.eye);
         e.eye.setAttribute("cx", x.toFixed(2));
+        e.eye.setAttribute("cy", y.toFixed(2));
         e.eye.setAttribute("ry", ry.toFixed(2));
-        e.shine.setAttribute("cx", (x + 1.8).toFixed(2));
-        e.shine.setAttribute("cy", (e.y - 2.6 * s.eye).toFixed(2));
+        e.shine.setAttribute("cx", (x + 2).toFixed(2));
+        e.shine.setAttribute("cy", (y - 3 * s.eye).toFixed(2));
         e.shine.setAttribute("opacity", blinking || s.eye < 0.4 ? 0 : 0.9);
         e.top.setAttribute("cx", x.toFixed(2));
         e.top.setAttribute("cy", (e.y - 16 + s.lidTop * 7).toFixed(2));
         e.bottom.setAttribute("cx", x.toFixed(2));
         e.bottom.setAttribute("cy", (e.y + 16 - s.lidBottom * 7).toFixed(2));
         // Brows: inner end is the one nearest the middle of the face.
-        const by = e.y - 13 - s.browLift * 3 - (e.side > 0 ? s.browArch * 4 : 0);
-        const inner = by - s.browTilt * 3, outer = by + s.browTilt * 1.5;
+        const by = e.y - 14 - s.browLift * 3 - s.emph * 3 - (e.side > 0 ? s.browArch * 4 : 0);
+        const inner = by - s.browTilt * 3.5, outer = by + s.browTilt * 2;
         const xi = x - e.side * 3, xo = x + e.side * 6;
         e.brow.setAttribute("d", `M${xi.toFixed(1)},${inner.toFixed(1)} L${xo.toFixed(1)},${outer.toFixed(1)}`);
         e.brow.setAttribute("opacity", (s.brow * s.alive).toFixed(2));
       }
 
       // Speaking: shape from the audio. Otherwise a resting mouth whose curve follows the mood.
-      const halfWidth = 7 + s.width * (s.width > 0 ? 3.5 : 2.5);
+      const halfWidth = (10 + s.width * (s.width > 0 ? 5 : 4)) * s.mouth;
       if (s.open > 0.03) {
         const round = Math.max(0, -s.width);
-        face.mouth.setAttribute("d", mouthPath(100, 108, halfWidth * s.mouth, (1.5 + s.open * 11) * s.mouth, round));
+        const h = (2 + s.open * 24) * s.mouth;
+        const d = mouthPath(100, 110, halfWidth, h, round);
+        face.mouth.setAttribute("d", d);
+        face.lips.setAttribute("d", d);
+        face.lips.setAttribute("opacity", 1);
         face.mouth.classList.add("ask-ring-mouth-open");
+        // The tongue sits just inside the lower lip and only shows once the mouth is open enough.
+        const ry = h * 0.16;
+        face.tongue.setAttribute("rx", (halfWidth * 0.5).toFixed(2));
+        face.tongue.setAttribute("ry", ry.toFixed(2));
+        face.tongue.setAttribute("cy", (110 + h / 2 - ry - 0.8).toFixed(2));
+        face.tongue.setAttribute("opacity", clamp((s.open - 0.3) * 3, 0, 0.9).toFixed(2));
       } else {
+        face.lips.setAttribute("opacity", 0);
+        face.tongue.setAttribute("opacity", 0);
         const smile = s.smile * (0.4 + 0.6 * Math.max(s.alive, s.peek));
-        const half = 8 * s.mouth;
-        face.mouth.setAttribute("d", `M${(100 - half).toFixed(1)},107 Q100,${(107 + smile * 6).toFixed(1)} ${(100 + half).toFixed(1)},107`);
+        const half = 10 * s.mouth;
+        face.mouth.setAttribute("d", `M${(100 - half).toFixed(1)},109 Q100,${(109 + smile * 6).toFixed(1)} ${(100 + half).toFixed(1)},109`);
         face.mouth.classList.remove("ask-ring-mouth-open");
       }
 
