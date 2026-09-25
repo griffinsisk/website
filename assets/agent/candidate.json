@@ -1,0 +1,173 @@
+{
+  "name": "Griffin Sisk",
+  "links": {
+    "website": "https://www.griffinsisk.com",
+    "linkedin": "https://www.linkedin.com/in/griffin-sisk-68a0b6ab",
+    "github": "https://github.com/griffinsisk",
+    "email": "griffinjsisk@gmail.com",
+    "calendar": "https://calendly.com/griffinjsisk/30min"
+  },
+  "site_sections": [
+    "about",
+    "highlights",
+    "projects",
+    "resume",
+    "contact"
+  ],
+  "projects": {
+    "aws-china-cur-relay": {
+      "title": "AWS China Billing Relay",
+      "one_liner": "Brings AWS China spend into CloudZero by converting the billing report from yuan to dollars and moving it somewhere CloudZero can reach.",
+      "status": "shipped",
+      "visibility": "public",
+      "links": {
+        "github": "https://github.com/griffinsisk/aws-china-cur-relay"
+      }
+    },
+    "costformation-brain": {
+      "title": "CostFormation Brain",
+      "one_liner": "A knowledge corpus and validator that lets any AI coding agent write correct CloudZero cost-allocation config.",
+      "status": "shipped",
+      "visibility": "public",
+      "links": {
+        "github": "https://github.com/griffinsisk/costformation-brain"
+      }
+    },
+    "candidate-voice": {
+      "title": "candidate-voice (this agent)",
+      "one_liner": "The ElevenLabs voice and text agent you are talking to, built as an open-source template anyone can fork and deploy.",
+      "status": "in-progress",
+      "visibility": "public",
+      "links": {}
+    },
+    "demo-clipper": {
+      "title": "Demo Clipper",
+      "one_liner": "Turns a screen recording of a software demo into a narrated, sales-engineer-style demo video using ElevenLabs voices.",
+      "status": "in-progress",
+      "visibility": "private",
+      "links": {}
+    },
+    "contact-sheet": {
+      "title": "Contact Sheet",
+      "one_liner": "A web app that uses Claude vision to cull large photo sets the way the photographer would.",
+      "status": "shipped",
+      "visibility": "public",
+      "links": {
+        "demo": "https://contact-sheet-three.vercel.app/",
+        "github": "https://github.com/griffinsisk/contact-sheet"
+      }
+    },
+    "credit-unit-stream": {
+      "title": "AWS MAP Credits Pipeline",
+      "one_liner": "Automates the monthly push of AWS migration credits into CloudZero: drop a spreadsheet in S3 and it posts itself.",
+      "status": "shipped",
+      "visibility": "public",
+      "links": {
+        "github": "https://github.com/griffinsisk/credit-unit-stream"
+      }
+    },
+    "mass-relay": {
+      "title": "Mass Relay",
+      "one_liner": "Approval-gated AI workflows, built to help friends and family with their job searches.",
+      "status": "in-progress",
+      "visibility": "private",
+      "links": {}
+    },
+    "se-copilot": {
+      "title": "SE Copilot",
+      "one_liner": "An AI assistant plugin that carries a customer evaluation from success criteria to a validated business case.",
+      "status": "in-progress",
+      "visibility": "described-only",
+      "links": {}
+    },
+    "cz-revenue-telemetry": {
+      "title": "Revenue Telemetry Sync",
+      "one_liner": "Sends revenue data from Salesforce to CloudZero so cost can be measured against revenue.",
+      "status": "shipped",
+      "visibility": "public",
+      "links": {
+        "github": "https://github.com/griffinsisk/cz-revenue-telemetry"
+      }
+    },
+    "sweep": {
+      "title": "Sweep",
+      "one_liner": "A self-hosted app that clears years of Gmail in minutes.",
+      "status": "shipped",
+      "visibility": "public",
+      "links": {
+        "github": "https://github.com/griffinsisk/sweep"
+      }
+    }
+  },
+  "stories": {
+    "cyber-resilience-900k": {
+      "customer": "A global cyber-resilience company",
+      "headline": "$900K TCV across three clouds, GovCloud, and AI",
+      "stats": [
+        "$900K TCV, three-year agreement",
+        "FedRAMP blocker cleared in week three",
+        "~$200K/year in orphaned encryption keys found"
+      ],
+      "link": "https://www.griffinsisk.com/#highlights/cyber-resilience-900k"
+    },
+    "digital-asset-28-days": {
+      "customer": "A digital-asset infrastructure company",
+      "headline": "Demo to close in 28 days",
+      "stats": [
+        "First demo to closed in 28 days",
+        "8 Kubernetes clusters, ~$7\u20138M AWS estate",
+        "~$30K/month of CI spend brought into the model"
+      ],
+      "link": "https://www.griffinsisk.com/#highlights/digital-asset-28-days"
+    },
+    "supply-chain-475k": {
+      "customer": "A global supply-chain SaaS company",
+      "headline": "$475K identified, $175K actioned before signature",
+      "stats": [
+        "~$475K/year in savings identified",
+        "$175K actioned before the contract was signed",
+        "15 technical sessions, 20+ stakeholders"
+      ],
+      "link": "https://www.griffinsisk.com/#highlights/supply-chain-475k"
+    },
+    "healthcare-nine-stakeholders": {
+      "customer": "A healthcare data analytics platform serving major insurers",
+      "headline": "Nine stakeholders aligned in three weeks",
+      "stats": [
+        "Proof of concept to close in 3 weeks",
+        "9 stakeholders aligned",
+        "Expanded 17% at renewal"
+      ],
+      "link": "https://www.griffinsisk.com/#highlights/healthcare-nine-stakeholders"
+    },
+    "workforce-multi-currency": {
+      "customer": "A global workforce-management SaaS provider",
+      "headline": "Multi-currency unit economics across two clouds",
+      "stats": [
+        "Replaced a 3\u20134 hour spreadsheet process",
+        "AWS, GCP, and Kubernetes on four continents",
+        "Currency conversion no prior tool had handled"
+      ],
+      "link": "https://www.griffinsisk.com/#highlights/workforce-multi-currency"
+    },
+    "web3-table-granularity": {
+      "customer": "A Web3 data infrastructure company",
+      "headline": "Per-customer costs at database-table granularity",
+      "stats": [
+        "Cost per customer down to individual database tables",
+        "Full environment connected live in the kickoff call",
+        "~$130K/month of database spend attributed"
+      ],
+      "link": "https://www.griffinsisk.com/#highlights/web3-table-granularity"
+    },
+    "cloudhealth-largest-deal": {
+      "customer": "An enterprise customer at VMware CloudHealth",
+      "headline": "Largest commercial deal in CloudHealth history",
+      "stats": [
+        "Largest commercial deal in CloudHealth product history",
+        "~20% actionable savings identified"
+      ],
+      "link": "https://www.griffinsisk.com/#highlights/cloudhealth-largest-deal"
+    }
+  }
+}

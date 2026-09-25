@@ -1,0 +1,3 @@
+@elevenlabs/client 1.25.0
+https://registry.npmjs.org/@elevenlabs/client/-/client-1.25.0.tgz
+Files: dist/lib.iife.js, worklets/rawAudioProcessor.js, worklets/audioConcatProcessor.js, LICENSE

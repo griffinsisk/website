@@ -648,6 +648,17 @@
 
     .contact-val:hover { color: var(--accent); }
 
+    /* ── AGENT SPOTLIGHT: the voice assistant points at an item ── */
+    .agent-spotlight { border-radius: 10px; animation: agent-spotlight 2.6s ease-out; }
+    @keyframes agent-spotlight {
+      0% { box-shadow: 0 0 0 0 rgba(0,212,180,0); }
+      12% { box-shadow: 0 0 0 3px rgba(0,212,180,0.6), 0 0 28px rgba(0,212,180,0.25); }
+      100% { box-shadow: 0 0 0 3px rgba(0,212,180,0), 0 0 28px rgba(0,212,180,0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .agent-spotlight { animation: none; outline: 2px solid var(--accent); outline-offset: 4px; }
+    }
+
     /* ── ASK ──────────────────────────────────── */
     /* The Ask AI tab is the one colored item in the nav, a deliberate draw. */
     .content-nav a#nav-ask { color: var(--accent); }
@@ -886,7 +897,7 @@
       <!-- CUSTOMER STORIES (anonymized) -->
       <div class="hl-group" id="hl-customers">
 
-        <div class="highlight-item">
+        <div class="highlight-item" id="story-cyber-resilience-900k" data-agent-target="story:cyber-resilience-900k">
           <span class="highlight-num">01</span>
           <div class="highlight-body">
             <div class="highlight-title">$900K TCV Across Three Clouds, GovCloud, and AI <span class="highlight-tag">Cyber Resilience Platform</span></div>
@@ -902,7 +913,7 @@
           </div>
         </div>
 
-        <div class="highlight-item">
+        <div class="highlight-item" id="story-digital-asset-28-days" data-agent-target="story:digital-asset-28-days">
           <span class="highlight-num">02</span>
           <div class="highlight-body">
             <div class="highlight-title">Demo to Close in 28 Days <span class="highlight-tag">Digital Asset Infrastructure</span></div>
@@ -916,7 +927,7 @@
           </div>
         </div>
 
-        <div class="highlight-item">
+        <div class="highlight-item" id="story-supply-chain-475k" data-agent-target="story:supply-chain-475k">
           <span class="highlight-num">03</span>
           <div class="highlight-body">
             <div class="highlight-title">$475K Identified, $175K Actioned Before Signature <span class="highlight-tag">Supply-Chain SaaS</span></div>
@@ -930,7 +941,7 @@
           </div>
         </div>
 
-        <div class="highlight-item">
+        <div class="highlight-item" id="story-healthcare-nine-stakeholders" data-agent-target="story:healthcare-nine-stakeholders">
           <span class="highlight-num">04</span>
           <div class="highlight-body">
             <div class="highlight-title">Nine Stakeholders Aligned in Three Weeks <span class="highlight-tag">Healthcare Data Platform</span></div>
@@ -944,7 +955,7 @@
           </div>
         </div>
 
-        <div class="highlight-item">
+        <div class="highlight-item" id="story-workforce-multi-currency" data-agent-target="story:workforce-multi-currency">
           <span class="highlight-num">05</span>
           <div class="highlight-body">
             <div class="highlight-title">Multi-Currency Unit Economics Across Two Clouds <span class="highlight-tag">Workforce SaaS</span></div>
@@ -958,7 +969,7 @@
           </div>
         </div>
 
-        <div class="highlight-item">
+        <div class="highlight-item" id="story-web3-table-granularity" data-agent-target="story:web3-table-granularity">
           <span class="highlight-num">06</span>
           <div class="highlight-body">
             <div class="highlight-title">Per-Customer Costs at Database-Table Granularity <span class="highlight-tag">Web3 Infrastructure</span></div>
@@ -972,7 +983,7 @@
           </div>
         </div>
 
-        <div class="highlight-item">
+        <div class="highlight-item" id="story-cloudhealth-largest-deal" data-agent-target="story:cloudhealth-largest-deal">
           <span class="highlight-num">07</span>
           <div class="highlight-body">
             <div class="highlight-title">Largest Commercial Deal in CloudHealth History <span class="highlight-tag">VMware / Broadcom</span></div>
@@ -980,7 +991,7 @@
             <details class="hl-more"><summary>Show More</summary><div class="hl-more-body"><ul>
               <li>Automated multi-source billing ingestion where the platform's standard connectors didn't cover the customer's estate.</li>
               <li>Built a cost allocation model complex enough to be the deal's core technical risk, and de-risked it during the evaluation rather than after signature.</li>
-              <li>Part of a run of 100%+ quota across 7 consecutive half-years, with 150%+ in 3 of them.</li>
+              <li>Part of a run of 100%+ quota across 12 consecutive quarters, with 150%+ in 3 of them.</li>
             </ul></div></details>
           </div>
         </div>
@@ -1090,75 +1101,124 @@
       <div class="panel-title">Projects</div>
       <p class="projects-intro">A few things I've designed and shipped. I care as much about the context design, evaluation, and reliability behind these as the prompts themselves.</p>
 
-      <div class="project-item">
+      <!-- agent:projects:start -->
+      <div class="project-item" id="project-aws-china-cur-relay" data-agent-target="project:aws-china-cur-relay">
+        <div class="project-head">
+          <div class="project-title">AWS China Billing Relay</div>
+          <div class="project-stack">Python · AWS Lambda · Amazon S3 · AWS Secrets Manager</div>
+        </div>
+        <p class="project-desc">A serverless relay that reads the AWS China cost and usage report, rewrites every money column from yuan to US dollars while keeping the report&#x27;s exact format, and copies it to a commercial-partition bucket so CloudZero ingests it as native AWS data.</p>
+        <ul class="project-points">
+          <li>Idempotent by design: a deterministic ID built from the source version and exchange rate means a month is only reprocessed when the data or the rate changes.</li>
+          <li>Exact decimal arithmetic for money, verified by a round-trip test that must match the original to the cent.</li>
+          <li>Written by hand, without AI coding assistance.</li>
+        </ul>
+        <a class="text-cta" href="https://github.com/griffinsisk/aws-china-cur-relay" target="_blank" rel="noopener noreferrer">View on GitHub ↗</a>
+      </div>
+
+      <div class="project-item" id="project-costformation-brain" data-agent-target="project:costformation-brain">
         <div class="project-head">
           <div class="project-title">CostFormation Brain</div>
-          <div class="project-stack">Claude · MCP · Multi-agent</div>
+          <div class="project-stack">Python · YAML · pytest · MCP</div>
         </div>
-        <p class="project-desc">An AI knowledge corpus that turns any coding agent into an expert at writing CloudZero CostFormation YAML, the allocation logic that decides how cloud spend gets attributed. Built to work across Claude Code, Cursor, Copilot, and Codex.</p>
+        <p class="project-desc">A routed knowledge corpus, a custom linter with 131 tests, 20 worked example patterns, and an eval harness, packaged so Claude Code, Cursor, Copilot, and Codex all behave the same way.</p>
         <ul class="project-points">
-          <li>Designed a <strong>context architecture</strong> that makes agents read a strict ruleset and route through a 9-file corpus before generating, cutting the wrong-but-plausible syntax general models produce by default.</li>
-          <li>Built auto-populating org context from a customer's live config plus the CloudZero MCP, with a compact index so context persists efficiently across sessions.</li>
-          <li>Packaged one corpus to deploy identically across five AI coding tools by mapping each to its native instruction format.</li>
+          <li>Constrain and verify instead of trusting generation: the linter catches the model when it is wrong.</li>
+          <li>Observable compliance: agents must state which files they read before generating.</li>
+          <li>One corpus shipped in four agent formats, kept identical so behavior matches across tools.</li>
         </ul>
         <a class="text-cta" href="https://github.com/griffinsisk/costformation-brain" target="_blank" rel="noopener noreferrer">View on GitHub ↗</a>
       </div>
 
-      <div class="project-item">
+      <div class="project-item" id="project-candidate-voice" data-agent-target="project:candidate-voice">
         <div class="project-head">
-          <div class="project-title">SE AI Telemetry Helper</div>
-          <div class="project-stack">Claude Team Projects · Python · launchd</div>
+          <div class="project-title">candidate-voice (this agent)</div>
+          <div class="project-stack">ElevenLabs Agents · JavaScript · Python · Claude · In progress</div>
         </div>
-        <p class="project-desc">An automated knowledge pipeline that keeps a Claude Team Project accurate enough to use on live customer calls, spanning 9 code repos, Confluence, and a 104K-line Swift codebase that ships weekly.</p>
+        <p class="project-desc">A grounded ElevenLabs agent that answers from a source-tagged profile, takes actions through client tools such as showing projects and opening a booking page, plus a bring-your-own-AI onboarding kit and a validator so anyone can build their own.</p>
         <ul class="project-points">
-          <li>Designed a <strong>tiered authority system and uncertainty protocol</strong> so the assistant never presents an unverified feature as customer-ready, engineering directly against the confidently-wrong failure mode.</li>
-          <li>Built an unattended sync pipeline with launchd, a Google Drive bridge, and Python that keeps knowledge fresh on a schedule instead of relying on manual curation.</li>
-          <li>Used Claude to distill a 104K-line Swift and Go codebase into a focused technical reference, working around context limits with graceful degradation.</li>
-          <li>Tuned a customer-answer-first response format for real-time use mid-call.</li>
+          <li>Every fact carries a source tag, and a validator blocks untagged claims, phone numbers, and placeholder text before anything ships.</li>
+          <li>Tools for actions instead of generated text: links and bookings are deterministic.</li>
+          <li>Voice runs over WebRTC and chat over WebSocket through one agent, under a strict content security policy.</li>
         </ul>
       </div>
 
-      <div class="project-item">
+      <div class="project-item" id="project-demo-clipper" data-agent-target="project:demo-clipper">
         <div class="project-head">
-          <div class="project-title">AI Signal Digest</div>
-          <div class="project-stack">Claude CLI · Python · Prompt evals</div>
+          <div class="project-title">Demo Clipper</div>
+          <div class="project-stack">Python · JavaScript · Chrome extension · Claude API · ElevenLabs API · ffmpeg · In progress</div>
         </div>
-        <p class="project-desc">A weekly GTM enablement pipeline that synthesizes AI and competitive market signal into a digest reps can act on.</p>
+        <p class="project-desc">A Chrome extension that logs each click and navigation during a demo, plus a Python pipeline that describes each step with Claude vision, fact-checks a written narration, voices it with ElevenLabs, and assembles the final video with captions.</p>
         <ul class="project-points">
-          <li>Built <strong>multi-source ingestion</strong> across multiple external news feeds, customer call transcripts, and internal Slack, with a defined spec for signal versus noise.</li>
-          <li>Version-controlled prompts and saved fixtures for regression testing, so output quality doesn't drift as the pipeline grows.</li>
-          <li>Ran the full pipeline through the Claude CLI with no API key required.</li>
+          <li>Claim-level verification of the narration against frames and cited sources before any audio is generated.</li>
+          <li>A human approval gate before every paid step, and resumable runs that only redo stages whose inputs changed.</li>
         </ul>
       </div>
 
-      <div class="project-item">
+      <div class="project-item" id="project-contact-sheet" data-agent-target="project:contact-sheet">
         <div class="project-head">
           <div class="project-title">Contact Sheet</div>
-          <div class="project-stack">Next.js · TypeScript · Claude vision</div>
+          <div class="project-stack">TypeScript · Next.js · React · Claude API · Clerk · Stripe</div>
         </div>
-        <p class="project-desc">A Next.js app that uses Claude to cull and score large photo sets with intent-aware scoring, built from my own photography work.</p>
+        <p class="project-desc">A two-pass culling app with intent-aware grading, taste profiles, and editorial guidance, with billing and a bring-your-own-key option.</p>
         <ul class="project-points">
-          <li>Built a production-style web app in Next.js and TypeScript with Claude doing <strong>vision-based image scoring</strong> against user intent.</li>
-          <li>Created an eval-fixtures harness and Playwright tests to measure scoring quality and catch regressions.</li>
-          <li>Designed scoring logic that ranks images by what the photographer is selecting for, not generic aesthetics.</li>
+          <li>Downscaling for the cull pass cut vision-token cost about 60 percent.</li>
+          <li>Measured determinism instead of assuming it: 340 API calls showed 100 percent rating stability at temperature 0.</li>
+          <li>Regression-tested scoring with eval fixtures on every prompt change.</li>
         </ul>
-        <a class="text-cta" href="https://contact-sheet-three.vercel.app/" target="_blank" rel="noopener">Try the app ↗</a>
+        <a class="text-cta" href="https://contact-sheet-three.vercel.app/" target="_blank" rel="noopener noreferrer">Try the app ↗</a>
+        <a class="text-cta" href="https://github.com/griffinsisk/contact-sheet" target="_blank" rel="noopener noreferrer">View on GitHub ↗</a>
       </div>
 
-      <div class="project-item">
+      <div class="project-item" id="project-credit-unit-stream" data-agent-target="project:credit-unit-stream">
         <div class="project-head">
-          <div class="project-title">Ask AI Agent (This Site)</div>
-          <div class="project-stack">Claude · Vercel serverless · Prompt caching</div>
+          <div class="project-title">AWS MAP Credits Pipeline</div>
+          <div class="project-stack">Python · AWS Lambda · Amazon S3 · AWS SAM</div>
         </div>
-        <p class="project-desc">The ✦ Ask AI tab on this site: a corpus-grounded assistant that cites its sources, refuses to improvise, and explains its own architecture if you ask. One serverless function, a prompt-cached knowledge corpus, and a smoke-test suite probing its grounding behavior.</p>
+        <p class="project-desc">An event-driven serverless pipeline plus a backfill tool, built for customers to deploy and run themselves.</p>
         <ul class="project-points">
-          <li><strong>Deliberately no RAG:</strong> the whole corpus ships as a cached prompt prefix, because at this scale retrieval would only add latency, cost, and the one failure mode the agent is designed against: answering without seeing the relevant section.</li>
-          <li>A behavior contract enforces citation, an honest "Griffin hasn't shared that," and polite refusal of off-topic use, probed by a smoke-test script after every corpus change.</li>
-          <li>Layered abuse guards: input and history caps, per-IP rate limiting, capped output, disconnect-abort to stop paying for abandoned streams, and a provider-side spend limit as the backstop.</li>
-          <li>Ask it "why don't you use RAG?" and it will explain this decision itself, with the section citation.</li>
+          <li>Selective retries with exponential backoff, and structured JSON logging for supportability.</li>
         </ul>
-        <a class="text-cta" href="#ask">Try it ↗</a>
+        <a class="text-cta" href="https://github.com/griffinsisk/credit-unit-stream" target="_blank" rel="noopener noreferrer">View on GitHub ↗</a>
       </div>
+
+      <div class="project-item" id="project-mass-relay" data-agent-target="project:mass-relay">
+        <div class="project-head">
+          <div class="project-title">Mass Relay</div>
+          <div class="project-stack">AI agent skills · Python · In progress</div>
+        </div>
+        <p class="project-desc">A set of AI agent skills that each handle one stage, from assessing fit to preparing for an interview, with evidence tracking and a human approval required between stages.</p>
+        <ul class="project-points">
+          <li>Human approval is the boundary between stages; nothing is sent automatically.</li>
+        </ul>
+      </div>
+
+      <div class="project-item" id="project-se-copilot" data-agent-target="project:se-copilot">
+        <div class="project-head">
+          <div class="project-title">SE Copilot</div>
+          <div class="project-stack">Claude Code · MCP · In progress</div>
+        </div>
+        <p class="project-desc">A Claude Code plugin that guides a proof-of-value from success criteria to a validated business case, with state kept in shared storage so any sales engineer can pick it up.</p>
+      </div>
+
+      <div class="project-item" id="project-cz-revenue-telemetry" data-agent-target="project:cz-revenue-telemetry">
+        <div class="project-head">
+          <div class="project-title">Revenue Telemetry Sync</div>
+          <div class="project-stack">Python · Salesforce API · REST APIs</div>
+        </div>
+        <p class="project-desc">A configurable command-line tool that queries Salesforce, maps results to CloudZero dimensions, and uploads them in batches.</p>
+        <a class="text-cta" href="https://github.com/griffinsisk/cz-revenue-telemetry" target="_blank" rel="noopener noreferrer">View on GitHub ↗</a>
+      </div>
+
+      <div class="project-item" id="project-sweep" data-agent-target="project:sweep">
+        <div class="project-head">
+          <div class="project-title">Sweep</div>
+          <div class="project-stack">Python · FastAPI · React · Gmail API</div>
+        </div>
+        <p class="project-desc">An app that runs locally, counts what a cleanup would remove before acting, and trashes mail in batches of 1,000 with undo.</p>
+        <a class="text-cta" href="https://github.com/griffinsisk/sweep" target="_blank" rel="noopener noreferrer">View on GitHub ↗</a>
+      </div>
+      <!-- agent:projects:end -->
     </div>
 
     <!-- CONTACT -->
@@ -1307,8 +1367,28 @@
     activateOne('.panel', panel);
     activateOne('.content-nav a', document.getElementById('nav-' + id));
   }
+  // "#projects/<id>" and "#highlights/<story-id>" open the panel, then spotlight one item.
+  // The voice assistant navigates by setting these hashes too.
   function syncFromHash() {
-    show((location.hash || '#about').slice(1));
+    const [id, target] = (location.hash || '#about').slice(1).split('/');
+    show(id);
+    if (target) spotlight(id, target);
+  }
+  function spotlight(panelId, target) {
+    const kind = { projects: 'project', highlights: 'story' }[panelId];
+    const node = kind && document.querySelector(`[data-agent-target="${kind}:${CSS.escape(target)}"]`);
+    if (!node) return;
+    if (kind === 'story') {
+      const tab = document.querySelector('.hl-tab[data-g="customers"]');
+      if (tab) tab.click();
+      const more = node.querySelector('details');
+      if (more) more.open = true;
+    }
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    node.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'center' });
+    node.classList.remove('agent-spotlight');
+    void node.offsetWidth; // restart the animation if it is already spotlit
+    node.classList.add('agent-spotlight');
   }
   window.addEventListener('hashchange', syncFromHash);
   syncFromHash();
