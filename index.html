@@ -555,6 +555,14 @@
       color: var(--white);
     }
 
+    .project-badge {
+      display: inline-block; vertical-align: middle; margin-left: 10px;
+      font-family: var(--cond); font-size: 10px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--accent); border: 1px solid rgba(0,212,180,0.4); border-radius: 2px;
+      padding: 2px 6px;
+    }
+
     .project-stack {
       font-family: var(--cond);
       font-size: 11px;
@@ -1061,14 +1069,8 @@
         <div class="highlight-item">
           <span class="highlight-num">03</span>
           <div class="highlight-body">
-            <div class="highlight-title">Implemented AI Product SE Helper <span class="highlight-tag">CloudZero</span></div>
-            <div class="highlight-desc">An AI-powered SE assistant for live customer calls. It pulls from Confluence and a weekly private repo summary to give instant, source-cited answers about CloudZero's rapidly evolving AI Telemetry product. Leads with what's customer-ready, flags what's in-progress, and never guesses.</div>
-            <details class="hl-more"><summary>Show More</summary><div class="hl-more-body"><ul>
-              <li>Three layers: an unattended Python sync pipeline (2x-daily for fast-moving docs, weekly for stable repos, scheduled via launchd), weekly AI summarization that distills a 104K-line Swift/Go codebase into a focused reference, and live Jira/Confluence lookups at question time for anything volatile.</li>
-              <li>A tiered authority system decides what wins when sources conflict: customer-facing docs always beat code, because "exists in the repo" doesn't mean "supported for customers."</li>
-              <li>Every answer cites its source; an uncitable answer becomes "I don't know" with an escalation path, and a stale codebase summary (&gt;7 days) flags itself.</li>
-              <li>Response format is tuned for mid-call use: the customer-ready answer first, technical detail second, caveats flagged last.</li>
-            </ul></div></details>
+            <div class="highlight-title">Built SE Copilot <span class="highlight-tag">CloudZero</span></div>
+            <div class="highlight-desc">A Claude Code plugin that guides each proof of value from success criteria to a validated business case, with state kept in shared storage so any sales engineer can pick it up. It cuts each evaluation by more than two hours.</div>
           </div>
         </div>
 
@@ -1089,20 +1091,6 @@
         <div class="highlight-item">
           <span class="highlight-num">05</span>
           <div class="highlight-body">
-            <div class="highlight-title">Built AI Signal Digest <span class="highlight-tag">CloudZero</span></div>
-            <div class="highlight-desc">Weekly GTM enablement pipeline that pulls signal from competitor changelogs, AI provider releases, customer calls, and internal Slack, then synthesizes a digest that helps reps proactively steer conversations toward AI cost allocation.</div>
-            <details class="hl-more"><summary>Show More</summary><div class="hl-more-body"><ul>
-              <li>Deterministic pipeline, probabilistic AI: Python fetches and normalizes ~18 sources; Claude decides relevance and labeling through version-controlled prompts ground-truthed to a written signal-vs-noise spec.</li>
-              <li>Every item carries a talk-track safety label (🟢 safe to reference with customers, 🟡 internal awareness only) with conservative tier-based defaults ("when in doubt, label 🟡").</li>
-              <li>A field pattern needs 3+ customer calls across 2+ accounts before the digest calls it a trend, and only customer-volunteered signal counts.</li>
-              <li>Cached extractions make prompt iteration a 30-second re-synthesis instead of a 25-minute re-run; the whole thing costs about $1.20/week to operate.</li>
-            </ul></div></details>
-          </div>
-        </div>
-
-        <div class="highlight-item">
-          <span class="highlight-num">06</span>
-          <div class="highlight-body">
             <div class="highlight-title">Created Cross-Product Enablement Program <span class="highlight-tag">VMware / Broadcom</span></div>
             <div class="highlight-desc">Pulled together SEs and AEs across the product suite to enable the full team on each other's products, shifting the go-to-market from product and feature selling toward cohesive solution selling.</div>
             <details class="hl-more"><summary>Show More</summary><div class="hl-more-body"><ul>
@@ -1113,7 +1101,7 @@
         </div>
 
         <div class="highlight-item">
-          <span class="highlight-num">07</span>
+          <span class="highlight-num">06</span>
           <div class="highlight-body">
             <div class="highlight-title">Developed Automated Customer Outreach Program <span class="highlight-tag">CloudHealth</span></div>
             <div class="highlight-desc">Built an automated outreach system to surface expansion and upsell opportunities from existing accounts, turning cost data into revenue signals while increasing customer adoption and retention.</div>
@@ -1164,7 +1152,7 @@
       <div class="project-item" id="project-candidate-voice" data-agent-target="project:candidate-voice">
         <div class="project-head">
           <div class="project-title">candidate-voice (this agent)</div>
-          <div class="project-stack">ElevenLabs Agents · JavaScript · Python · Claude · In progress</div>
+          <div class="project-stack">ElevenLabs Agents · JavaScript · Python · Claude</div>
         </div>
         <p class="project-desc">A grounded ElevenLabs agent that answers from a source-tagged profile, takes actions through client tools such as showing projects and opening a booking page, plus a bring-your-own-AI onboarding kit and a validator so anyone can build their own.</p>
         <ul class="project-points">
@@ -1176,8 +1164,8 @@
 
       <div class="project-item" id="project-demo-clipper" data-agent-target="project:demo-clipper">
         <div class="project-head">
-          <div class="project-title">Demo Clipper</div>
-          <div class="project-stack">Python · JavaScript · Chrome extension · Claude API · ElevenLabs API · ffmpeg · In progress</div>
+          <div class="project-title">Demo Clipper <span class="project-badge">In development</span></div>
+          <div class="project-stack">Python · JavaScript · Chrome extension · Claude API · ElevenLabs API · ffmpeg</div>
         </div>
         <p class="project-desc">A Chrome extension that logs each click and navigation during a demo, plus a Python pipeline that describes each step with Claude vision, fact-checks a written narration, voices it with ElevenLabs, and assembles the final video with captions.</p>
         <ul class="project-points">
@@ -1215,8 +1203,8 @@
 
       <div class="project-item" id="project-mass-relay" data-agent-target="project:mass-relay">
         <div class="project-head">
-          <div class="project-title">Mass Relay</div>
-          <div class="project-stack">AI agent skills · Python · In progress</div>
+          <div class="project-title">Mass Relay <span class="project-badge">In development</span></div>
+          <div class="project-stack">AI agent skills · Python</div>
         </div>
         <p class="project-desc">A set of AI agent skills that each handle one stage, from assessing fit to preparing for an interview, with evidence tracking and a human approval required between stages.</p>
         <ul class="project-points">
@@ -1226,19 +1214,10 @@
 
       <div class="project-item" id="project-se-copilot" data-agent-target="project:se-copilot">
         <div class="project-head">
-          <div class="project-title">SE Copilot</div>
-          <div class="project-stack">Claude Code · MCP · In progress</div>
+          <div class="project-title">SE Copilot <span class="project-badge">In development</span></div>
+          <div class="project-stack">Claude Code · MCP</div>
         </div>
-        <p class="project-desc">A Claude Code plugin that guides a proof-of-value from success criteria to a validated business case, with state kept in shared storage so any sales engineer can pick it up.</p>
-      </div>
-
-      <div class="project-item" id="project-cz-revenue-telemetry" data-agent-target="project:cz-revenue-telemetry">
-        <div class="project-head">
-          <div class="project-title">Revenue Telemetry Sync</div>
-          <div class="project-stack">Python · Salesforce API · REST APIs</div>
-        </div>
-        <p class="project-desc">A configurable command-line tool that queries Salesforce, maps results to CloudZero dimensions, and uploads them in batches.</p>
-        <a class="text-cta" href="https://github.com/griffinsisk/cz-revenue-telemetry" target="_blank" rel="noopener noreferrer">View on GitHub ↗</a>
+        <p class="project-desc">A Claude Code plugin that guides a proof-of-value from success criteria to a validated business case, with state kept in shared storage so any sales engineer can pick it up. It cuts each evaluation by more than two hours.</p>
       </div>
 
       <div class="project-item" id="project-sweep" data-agent-target="project:sweep">

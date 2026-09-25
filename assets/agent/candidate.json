@@ -36,7 +36,7 @@
     "candidate-voice": {
       "title": "candidate-voice (this agent)",
       "one_liner": "The ElevenLabs voice and text agent you are talking to, built as an open-source template anyone can fork and deploy.",
-      "status": "in-progress",
+      "status": "shipped",
       "visibility": "public",
       "links": {}
     },
@@ -79,15 +79,6 @@
       "status": "in-progress",
       "visibility": "described-only",
       "links": {}
-    },
-    "cz-revenue-telemetry": {
-      "title": "Revenue Telemetry Sync",
-      "one_liner": "Sends revenue data from Salesforce to CloudZero so cost can be measured against revenue.",
-      "status": "shipped",
-      "visibility": "public",
-      "links": {
-        "github": "https://github.com/griffinsisk/cz-revenue-telemetry"
-      }
     },
     "sweep": {
       "title": "Sweep",
