@@ -1,4 +1,4 @@
-// candidate-voice Ring: a floating voice assistant for any page. Needs the vendored ElevenLabs SDK
+// echo-voice-agent Ring: a floating voice assistant for any page. Needs the vendored ElevenLabs SDK
 // and ask-agent.js loaded first, and ring.css on the page. No build step, no dependencies.
 //
 //   AskRing.mount({
@@ -185,7 +185,8 @@
     toggle.setAttribute("aria-controls", log.id);
     panel.append(log, bubble);
 
-    const TIP = `AI assistant · Ask me about ${first}'s work. Click to talk.`;
+    const who = opts.data.assistant_name ? `${opts.data.assistant_name}, ${first}'s AI assistant` : "AI assistant";
+    const TIP = `${who} · Ask me about ${first}'s work. Click to talk.`;
     const tip = el("div", "ask-ring-tip");
     const tipText = el("span", "", TIP);
     tip.append(tipText);
@@ -322,7 +323,8 @@
       if (awake || seen() || document.hidden) return;
       markSeen();
       nudging = true;
-      tipText.textContent = `Hi! Want to hear about ${first}'s work? Click me and ask out loud.`;
+      const hi = opts.data.assistant_name ? `Hi, I'm ${opts.data.assistant_name}!` : "Hi!";
+      tipText.textContent = `${hi} Want to hear about ${first}'s work? Click me and ask out loud.`;
       root.classList.add("ask-ring-nudge");
       setPeek(true);
       nudgeTimer = setTimeout(dismissNudge, 6000);

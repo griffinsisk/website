@@ -1,4 +1,4 @@
-// candidate-voice embed: connects a page to the ElevenLabs agent and runs its client tools.
+// echo-voice-agent embed: connects a page to the ElevenLabs agent and runs its client tools.
 // Needs the vendored ElevenLabs SDK (lib.iife.js) loaded first. No build step, no dependencies.
 //
 //   AskAgent.mount({
@@ -367,5 +367,13 @@
     };
   }
 
-  window.AskAgent = { mount };
+  // Which agent this visit talks to: a lens link (?l=<code>) picks that lens agent; anything else, or an
+  // unknown code, gets the base agent. The codes are opaque, so the page never names a target company.
+  function pickAgent(data, param = "l") {
+    const code = new URLSearchParams(location.search).get(param);
+    const agents = data.agents || {};
+    return (code && agents.links && agents.links[code]) || agents.base;
+  }
+
+  window.AskAgent = { mount, pickAgent };
 })();

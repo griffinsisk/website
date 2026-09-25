@@ -1,5 +1,12 @@
 {
   "name": "Griffin Sisk",
+  "assistant_name": "Echo",
+  "agents": {
+    "base": "agent_5901m3axbdt3fjzrazd3ps08p65p",
+    "links": {
+      "qgat5": "agent_0501m3axbftjes3rp52tcea07c3t"
+    }
+  },
   "links": {
     "website": "https://www.griffinsisk.com",
     "linkedin": "https://www.linkedin.com/in/griffin-sisk-68a0b6ab",
@@ -33,8 +40,8 @@
         "github": "https://github.com/griffinsisk/costformation-brain"
       }
     },
-    "candidate-voice": {
-      "title": "candidate-voice (this agent)",
+    "echo-voice-agent": {
+      "title": "Echo (this agent)",
       "one_liner": "The ElevenLabs voice and text agent you are talking to, built as an open-source template anyone can fork and deploy.",
       "status": "shipped",
       "visibility": "public",
@@ -76,7 +83,7 @@
     "se-copilot": {
       "title": "SE Copilot",
       "one_liner": "An AI assistant plugin that carries a customer evaluation from success criteria to a validated business case.",
-      "status": "in-progress",
+      "status": "shipped",
       "visibility": "described-only",
       "links": {}
     },

@@ -1,4 +1,4 @@
-/* candidate-voice Ring and cards. Theme it by overriding these on :root or .ask-ring. */
+/* echo-voice-agent Ring and cards. Theme it by overriding these on :root or .ask-ring. */
 :root {
   --ring-accent: #00d4b4;
   --ring-bg: #101718;
