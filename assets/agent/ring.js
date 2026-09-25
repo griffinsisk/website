@@ -8,7 +8,12 @@
 //     reveal: (kind, id, node) => { ... },  // optional; how the page shows one of its own items
 //     navigate: (section) => { ... },       // optional; how the page shows a section
 //     textHref: "#ask",                     // optional; where to type instead when voice fails
+//     disclosure: "AI assistant built with ...",   // optional; shown under the tooltip
+//     nudgeAfter: 6000,                     // optional; ms before a one-time, silent invitation
 //   });
+//
+// Returns { talk(), ask(text), sleep(), dismissNudge() }. ask() wakes the Ring and asks that
+// question by voice once its intro line has finished.
 //
 // The Ring sleeps until clicked: a still icon with no animation loop and no session, so an unused
 // Ring costs nothing. Awake, its mouth follows the audio the visitor is hearing and its face takes
@@ -178,7 +183,11 @@
     toggle.setAttribute("aria-controls", log.id);
     panel.append(log, bubble);
 
-    const tip = el("div", "ask-ring-tip", `AI assistant · Ask me about ${first}'s work. Click to talk.`);
+    const TIP = `AI assistant · Ask me about ${first}'s work. Click to talk.`;
+    const tip = el("div", "ask-ring-tip");
+    const tipText = el("span", "", TIP);
+    tip.append(tipText);
+    if (opts.disclosure) tip.append(el("small", "ask-ring-disclosure", opts.disclosure));
     tip.id = "ask-ring-tip";
     tip.setAttribute("role", "tooltip");
     const button = el("button", "ask-ring-button");
@@ -195,6 +204,7 @@
     let awake = false, peek = false, state = "asleep", mood = "neutral";
     let rafId = 0, bounceUntil = 0, nextBlink = 0, blinkUntil = 0, lastNow = 0, quietTimer = 0;
     let peakLoud = 0.2, prevLoud = 0, winkAt = -1e9, winked = false;
+    let pending = null, pendingTimer = 0; // a question to ask once the intro line is over
     const WINK_MS = 1100;
 
     // 0 to 1: how far into the wink the face is. Snaps shut, holds, then eases open.
@@ -236,6 +246,10 @@
         if (!awake && (s === "listening" || s === "speaking")) { agent.end(); return; } // hung up while connecting
         const prev = state;
         state = s;
+        // Ask a queued question after the intro. If the agent has no intro, ask it shortly anyway.
+        if (s === "speaking") clearTimeout(pendingTimer);
+        if (s === "listening" && prev === "connecting" && pending) pendingTimer = setTimeout(flushPending, 2500);
+        if (s === "listening" && prev === "speaking") flushPending();
         if (s === "listening") mood = "neutral";
         // The intro line just finished: a wink to say hello.
         if (s === "listening" && prev === "speaking" && !winked) { winked = true; winkAt = performance.now(); }
@@ -278,7 +292,41 @@
       toggle.textContent = open ? "Hide transcript" : "Transcript";
     }
 
+    function flushPending() {
+      clearTimeout(pendingTimer);
+      if (pending && awake) agent.send(pending);
+      pending = null;
+    }
+
+    // The one-time invitation: eyes open and a speech bubble, no sound and no session.
+    const NUDGE_KEY = "ask-ring-nudged";
+    const seen = () => { try { return sessionStorage.getItem(NUDGE_KEY) === "1"; } catch { return false; } };
+    const markSeen = () => { try { sessionStorage.setItem(NUDGE_KEY, "1"); } catch {} };
+    let nudgeTimer = 0, nudging = false;
+    function dismissNudge() {
+      markSeen();
+      clearTimeout(nudgeTimer);
+      if (!nudging) return;
+      nudging = false;
+      root.classList.remove("ask-ring-nudge");
+      tipText.textContent = TIP;
+      setPeek(false);
+    }
+    function nudge() {
+      if (awake || seen() || document.hidden) return;
+      markSeen();
+      nudging = true;
+      tipText.textContent = `Hi! Want to hear about ${first}'s work? Click me and ask out loud.`;
+      root.classList.add("ask-ring-nudge");
+      setPeek(true);
+      nudgeTimer = setTimeout(dismissNudge, 6000);
+      addEventListener("scroll", dismissNudge, { once: true, passive: true });
+      addEventListener("pointerdown", dismissNudge, { once: true });
+    }
+    if (opts.nudgeAfter && !seen()) nudgeTimer = setTimeout(nudge, opts.nudgeAfter);
+
     function wake() {
+      dismissNudge();
       awake = true; peek = false; state = "connecting"; mood = "neutral"; winked = false;
       caption.textContent = "";
       fallbackLink.hidden = true;
@@ -291,6 +339,8 @@
 
     function sleep() {
       awake = false; state = "asleep"; mood = "neutral";
+      pending = null;
+      clearTimeout(pendingTimer);
       quietSoon(false);
       agent.end();
       panel.hidden = true;
@@ -304,7 +354,8 @@
       if (noHover && !peek) { peek = true; root.classList.add("ask-ring-peek"); wakeLoop(); return; }
       wake();
     });
-    const setPeek = (on) => { if (!awake) { peek = on; wakeLoop(); } };
+    function setPeek(on) { if (!awake && !(nudging && !on)) { peek = on; wakeLoop(); } }
+    // setPeek is a function declaration (hoisted) so the nudge can use it before this point.
     button.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") setPeek(true); });
     button.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") setPeek(false); });
     button.addEventListener("focus", () => setPeek(true));
@@ -461,7 +512,15 @@
 
     label();
     render(0, 0); // draw the sleeping icon once; no loop runs until something changes
-    return { wake, sleep, agent };
+    // talk(): wake up and listen. ask(text): wake up and ask this question out loud after the intro.
+    function talk() { if (!awake) wake(); }
+    function ask(text) {
+      if (awake && agent.active()) { agent.send(text); return; }
+      pending = text;
+      talk();
+    }
+
+    return { wake, talk, ask, sleep, dismissNudge, agent };
   }
 
   const api = { mount, moodOf, mouthShape, mouthPath, TUNING };

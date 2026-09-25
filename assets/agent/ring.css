@@ -77,7 +77,23 @@
 }
 .ask-ring[data-state="asleep"]:has(.ask-ring-button:hover) .ask-ring-tip,
 .ask-ring[data-state="asleep"]:has(.ask-ring-button:focus-visible) .ask-ring-tip,
-.ask-ring[data-state="asleep"].ask-ring-peek .ask-ring-tip { opacity: 1; transform: none; }
+.ask-ring[data-state="asleep"].ask-ring-peek .ask-ring-tip,
+.ask-ring[data-state="asleep"].ask-ring-nudge .ask-ring-tip { opacity: 1; transform: none; }
+.ask-ring-disclosure { display: block; margin-top: 6px; font-size: 11px; color: var(--ring-muted); }
+/* The one-time invitation reads as the Ring speaking: a bubble with a tail pointing up at it. */
+.ask-ring.ask-ring-nudge .ask-ring-tip { border-color: var(--ring-accent); font-size: 14px; max-width: 260px; }
+.ask-ring.ask-ring-nudge .ask-ring-tip::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  right: calc(var(--ring-size) / 2 - 7px);
+  width: 12px;
+  height: 12px;
+  background: var(--ring-panel);
+  border-left: 1px solid var(--ring-accent);
+  border-top: 1px solid var(--ring-accent);
+  transform: rotate(45deg);
+}
 
 /* Awake: a compact caption under the Ring, with the transcript beneath it when asked for. */
 .ask-ring-panel {

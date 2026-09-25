@@ -61,6 +61,10 @@
     return a;
   }
 
+  // One conversation at a time across every surface on the page (a floating Ring, a chat panel):
+  // starting one ends the other, so the visitor never has two sessions or two bills running.
+  let liveEnd = null;
+
   // Find the page's own copy of a project or story and show it. Returns false when the page has none.
   function revealOnPage(opts, kind, id) {
     const node = document.querySelector(`[data-agent-target="${kind}:${CSS.escape(id)}"]`);
@@ -236,15 +240,24 @@
       setState("unavailable");
     }
 
-    async function start(textOnly) {
-      if (conversation) return;
+    // A second start while one is still connecting waits for it instead of opening another session.
+    let starting = null;
+    function start(textOnly) {
+      if (conversation) return Promise.resolve();
+      if (!starting) starting = connect(textOnly).finally(() => { starting = null; });
+      return starting;
+    }
+
+    async function connect(textOnly) {
       mode = textOnly ? "text" : "voice";
+      if (liveEnd) liveEnd();
+      liveEnd = end;
       agentSpoke = false;
       endedByVisitor = false;
       setState("connecting");
       status(textOnly ? "Connecting..." : "Connecting... allow the microphone when asked.");
       try {
-        conversation = await ElevenLabsClient.Conversation.startSession({
+        const session = await ElevenLabsClient.Conversation.startSession({
           agentId: opts.agentId,
           textOnly,
           clientTools: tools,
@@ -280,15 +293,21 @@
           onError: (message) => console.warn("ask-agent error:", message),
           onDisconnect: () => {
             conversation = null;
+            if (liveEnd === end) liveEnd = null;
             if (els.stop) els.stop.disabled = true;
             // Hanging up before the agent spoke is the visitor's choice, not a failure.
             if (agentSpoke || endedByVisitor) { status("Conversation ended. Start again anytime."); setState("ended"); return; }
             fallBack();
           },
         });
+        conversation = session;
+        // Ended (by the visitor or another surface) while still connecting: hang up now.
+        if (endedByVisitor) session.endSession();
       } catch (err) {
         console.warn("ask-agent could not start:", err);
         conversation = null;
+        if (liveEnd === end) liveEnd = null;
+        if (endedByVisitor) { setState("ended"); return; } // another surface took over mid-connect
         fallBack();
       }
     }
@@ -300,11 +319,10 @@
     }
 
     if (els.voice) els.voice.addEventListener("click", () => start(false));
-    const end = () => {
-      if (!conversation) return;
+    function end() {
       endedByVisitor = true;
-      conversation.endSession();
-    };
+      if (conversation) conversation.endSession();
+    }
     if (els.stop) els.stop.addEventListener("click", end);
     if (els.form) els.form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -313,15 +331,25 @@
       els.input.value = "";
       if (!conversation) await start(true);
       if (!conversation) return;
-      addMsg("user", text);
-      conversation.sendUserMessage(text);
+      send(text);
     });
+
+    // Send a visitor message on the live conversation, voice or text. The SDK doesn't echo sent
+    // messages back, so it goes into the log here.
+    function send(text) {
+      if (!conversation) return false;
+      addMsg("user", text);
+      if (mode === "voice") setState("thinking");
+      conversation.sendUserMessage(text);
+      return true;
+    }
 
     const EMPTY = new Uint8Array(0);
     return {
       tools,
       start,
       end,
+      send,
       active: () => Boolean(conversation),
       // The audio the visitor is hearing right now: 1024 bins spanning 100 Hz to 8 kHz (voice only).
       frequencies: () => (conversation && mode === "voice" ? conversation.getOutputByteFrequencyData() : EMPTY),

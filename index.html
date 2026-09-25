@@ -683,6 +683,36 @@
       font-size: 13px; font-weight: 300; color: var(--muted);
       line-height: 1.7; max-width: 520px; margin-bottom: 24px;
     }
+    /* Voice leads: one big button that wakes the floating Ring. */
+    .ask-talk {
+      display: inline-flex; align-items: center; gap: 14px;
+      font-family: var(--cond); font-size: 18px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--black); background: var(--accent);
+      border: none; border-radius: 999px; padding: 12px 26px 12px 14px;
+      margin-bottom: 28px; cursor: pointer;
+      box-shadow: 0 0 0 0 rgba(0,212,180,0.5); transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .ask-talk:hover { box-shadow: 0 0 28px rgba(0,212,180,0.45); transform: translateY(-1px); }
+    .ask-talk:focus-visible { outline: 2px solid var(--white); outline-offset: 3px; }
+    .ask-talk svg { width: 36px; height: 36px; flex: none; }
+    .ask-talk svg circle { fill: var(--black); }
+    .ask-talk svg circle:first-child { fill: #101718; stroke: var(--black); stroke-width: 2; }
+    .ask-talk svg .eye { fill: var(--accent); }
+    .ask-talk svg path { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; }
+    .ask-try {
+      font-family: var(--cond); font-size: 12px; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+    }
+    /* Typing is the fallback, one click away. */
+    .ask-type { max-width: 560px; margin-bottom: 8px; }
+    .ask-type summary {
+      font-size: 13px; color: var(--muted); cursor: pointer; margin-bottom: 16px;
+      list-style: none; text-decoration: underline; text-underline-offset: 3px;
+    }
+    .ask-type summary::-webkit-details-marker { display: none; }
+    .ask-type summary:hover { color: var(--white); }
+    .ask-status { font-size: 11px; color: var(--muted); margin-top: 8px; min-height: 1em; }
     .ask-chips { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
     .ask-chip {
       font-family: var(--cond); font-size: 12px; font-weight: 700;
@@ -1256,22 +1286,31 @@
     <!-- ASK -->
     <div class="panel" id="panel-ask">
       <div class="panel-title">Ask AI</div>
-      <p class="ask-intro">An assistant grounded in a curated corpus about my work. It cites where each answer comes from, and says so plainly when something isn't covered. The assistant is itself one of my projects: ask it how it works.</p>
+      <p class="ask-intro">An assistant grounded in a reviewed profile of my work. It says plainly when something isn't covered, and can point you to projects and stories on this page. It's one of my projects: ask it how it works.</p>
 
+      <button type="button" class="ask-talk" id="askTalk">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" /><circle class="eye" cx="15" cy="18" r="2" /><circle class="eye" cx="25" cy="18" r="2" /><path d="M15 24 Q20 28 25 24" /></svg>
+        Talk to my assistant
+      </button>
+
+      <p class="ask-try">Try asking out loud</p>
       <div class="ask-chips">
-        <button class="ask-chip" data-q="What has Griffin actually built?">What has Griffin actually built?</button>
-        <button class="ask-chip" data-q="Why would Griffin fit a Solutions Architect role at an AI company?">Why an SE at an AI company?</button>
-        <button class="ask-chip" data-q="How does this assistant avoid making things up?">How does this avoid making things up?</button>
+        <button class="ask-chip" data-q="What has Griffin actually built?">What has Griffin built?</button>
+        <button class="ask-chip" data-q="Tell me about one of Griffin's customer stories.">Tell me a customer story</button>
+        <button class="ask-chip" data-q="How does this assistant work, and how does it avoid making things up?">How does this assistant work?</button>
       </div>
 
-      <div class="ask-log" id="askLog" aria-live="polite"></div>
-
-      <form class="ask-form" id="askForm">
-        <input id="askInput" type="text" maxlength="1000" autocomplete="off"
-               placeholder="Ask about Griffin's work…" aria-label="Ask a question about Griffin" />
-        <button type="submit" id="askSend">Send ↑</button>
-      </form>
-      <p class="ask-note">Answers come from a fixed corpus, not live data. Conversations aren't stored.</p>
+      <details class="ask-type" id="askType">
+        <summary>Prefer to type?</summary>
+        <div class="ask-log" id="askLog" aria-live="polite"></div>
+        <form class="ask-form" id="askForm">
+          <input id="askInput" type="text" maxlength="1000" autocomplete="off"
+                 placeholder="Ask about Griffin's work…" aria-label="Ask a question about Griffin" />
+          <button type="submit" id="askSend">Send ↑</button>
+        </form>
+        <p class="ask-status" id="askStatus"></p>
+      </details>
+      <p class="ask-note">AI assistant built with ElevenLabs. Conversations are processed by ElevenLabs and its model providers.</p>
     </div>
 
   </div>
@@ -1402,150 +1441,55 @@
       activateOne('.hl-group', document.getElementById('hl-' + t.dataset.g));
     }));
   })();
-
-  // ── Ask panel: streaming chat against /api/chat ────────────────
-  (() => {
-    const log = document.getElementById('askLog');
-    const form = document.getElementById('askForm');
-    const input = document.getElementById('askInput');
-    const sendBtn = document.getElementById('askSend');
-    if (!log || !form) return;
-
-    const history = [];
-    let busy = false;
-
-    function addMsg(role, text) {
-      const node = el('div', 'ask-msg ask-' + role, text);
-      log.appendChild(node);
-      node.scrollIntoView({ block: 'nearest' });
-      return node;
-    }
-
-    // Render **bold** as <strong>; everything else as text nodes (XSS-safe).
-    function renderInline(parent, text) {
-      const parts = text.split(/\*\*([^*]+)\*\*/g);
-      for (let i = 0; i < parts.length; i++) {
-        if (!parts[i]) continue;
-        if (i % 2 === 1) {
-          parent.appendChild(el('strong', null, parts[i]));
-        } else {
-          parent.appendChild(document.createTextNode(parts[i]));
-        }
-      }
-    }
-
-    // Whitelist renderer for assistant answers: paragraphs, "- " bullets, and
-    // bold. Everything is built as DOM nodes from text, never innerHTML.
-    function renderAnswer(container, text) {
-      container.textContent = '';
-      let ul = null, p = null;
-      for (const rawLine of text.split('\n')) {
-        const line = rawLine.trimEnd();
-        const m = line.match(/^\s*[-•*]\s+(.*)/);
-        if (m) {
-          p = null;
-          if (!ul) { ul = el('ul'); container.appendChild(ul); }
-          const li = el('li');
-          renderInline(li, m[1]);
-          ul.appendChild(li);
-        } else if (!line.trim()) {
-          ul = null; p = null;
-        } else {
-          ul = null;
-          if (!p) { p = el('p'); container.appendChild(p); }
-          else p.appendChild(el('br'));
-          renderInline(p, line);
-        }
-      }
-    }
-
-    async function send(question) {
-      question = (question || '').trim();
-      if (busy || !question) return;
-      busy = true;
-      input.value = '';
-      sendBtn.disabled = true;
-
-      addMsg('user', question);
-      history.push({ role: 'user', content: question });
-      const el = addMsg('assistant', '');
-      el.classList.add('ask-pending');
-
-      let answer = '';
-      try {
-        const r = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: history }),
-        });
-        if (!r.ok) {
-          const j = await r.json().catch(() => ({}));
-          throw new Error(j.error || 'Request failed (' + r.status + ')');
-        }
-        const reader = r.body.getReader();
-        const dec = new TextDecoder();
-        let buf = '';
-        let sawDone = false;
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buf += dec.decode(value, { stream: true });
-          const events = buf.split('\n\n');
-          buf = events.pop();
-          for (const ev of events) {
-            const line = ev.split('\n').find((l) => l.startsWith('data: '));
-            if (!line) continue;
-            const data = line.slice(6);
-            if (data === '[DONE]') { sawDone = true; continue; }
-            let payload;
-            try { payload = JSON.parse(data); } catch { continue; }
-            if (payload.error) throw new Error(payload.error);
-            answer += payload.text;
-            renderAnswer(el, answer);
-            el.scrollIntoView({ block: 'nearest' });
-          }
-        }
-        // A stream that ends without [DONE] was cut off, so don't commit a
-        // truncated answer to history as if it were complete.
-        if (!sawDone) throw new Error('The answer was cut off. Try asking again.');
-        if (!answer) throw new Error('No response. Try again.');
-        history.push({ role: 'assistant', content: answer });
-      } catch (e) {
-        history.pop(); // drop the failed user turn so a retry keeps roles alternating
-        el.textContent = (e.message || 'Something went wrong.') +
-          ' You can also reach Griffin at griffinjsisk@gmail.com.';
-      }
-      el.classList.remove('ask-pending');
-      busy = false;
-      sendBtn.disabled = false;
-    }
-
-    form.addEventListener('submit', (e) => { e.preventDefault(); send(input.value); });
-    document.querySelectorAll('.ask-chip').forEach((c) =>
-      c.addEventListener('click', () => send(c.dataset.q)));
-  })();
 </script>
 <!-- Floating voice assistant (the Ring), generated by candidate-voice's export_site.py -->
 <script src="assets/agent/vendor/lib.iife.js"></script>
 <script src="assets/agent/ask-agent.js"></script>
 <script src="assets/agent/ring.js"></script>
 <script>
-  // The assistant shows the site's own items through the same deep links a visitor can share.
+  // One agent behind the floating Ring (voice) and the Ask tab (voice first, typing as a fallback).
+  // Only one conversation runs at a time; starting either ends the other.
   (() => {
+    const DISCLOSURE = 'AI assistant built with ElevenLabs. Conversations are processed by ElevenLabs and its model providers.';
+    // The assistant shows the site's own items through the same deep links a visitor can share.
     const go = (hash) => {
       if (location.hash === hash) syncFromHash(); // same hash fires no hashchange; spotlight again
       else location.hash = hash;
     };
     fetch('assets/agent/candidate.json')
       .then((r) => r.json())
-      .then((data) => AskRing.mount({
-        agentId: 'agent_5901m3axbdt3fjzrazd3ps08p65p',
-        data,
-        workletBase: 'assets/agent/vendor/',
-        reveal: (kind, id) => go(`#${kind === 'project' ? 'projects' : 'highlights'}/${id}`),
-        navigate: (section) => go(`#${section}`),
-        textHref: '#ask',
-      }))
+      .then((data) => {
+        const shared = {
+          agentId: 'agent_5901m3axbdt3fjzrazd3ps08p65p',
+          data,
+          workletBase: 'assets/agent/vendor/',
+          reveal: (kind, id) => go(`#${kind === 'project' ? 'projects' : 'highlights'}/${id}`),
+          navigate: (section) => go(`#${section}`),
+        };
+        const ring = AskRing.mount({ ...shared, textHref: '#ask/type', disclosure: DISCLOSURE, nudgeAfter: 6000 });
+
+        const typed = document.getElementById('askType');
+        const chat = AskAgent.mount({ ...shared, els: {
+          log: document.getElementById('askLog'),
+          form: document.getElementById('askForm'),
+          input: document.getElementById('askInput'),
+          status: document.getElementById('askStatus'),
+        } });
+        document.getElementById('askForm').addEventListener('submit', () => ring.dismissNudge());
+
+        // Voice leads: the big button and the question chips wake the Ring.
+        document.getElementById('askTalk').addEventListener('click', () => ring.talk());
+        document.querySelectorAll('.ask-chip').forEach((c) =>
+          c.addEventListener('click', () => ring.ask(c.dataset.q)));
+        // When voice isn't possible, the Ring's "Go to text chat" link lands here with typing open.
+        const openTyping = () => {
+          if (location.hash !== '#ask/type') return;
+          typed.open = true;
+          document.getElementById('askInput').focus();
+        };
+        window.addEventListener('hashchange', openTyping);
+        openTyping();
+      })
       .catch((err) => console.warn('Assistant unavailable:', err));
   })();
 </script>
