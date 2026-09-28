@@ -45,7 +45,9 @@
       "one_liner": "The ElevenLabs voice and text agent you are talking to, built as an open-source template anyone can fork and deploy.",
       "status": "shipped",
       "visibility": "public",
-      "links": {}
+      "links": {
+        "github": "https://github.com/griffinsisk/echo-voice-agent"
+      }
     },
     "demo-clipper": {
       "title": "Demo Clipper",
