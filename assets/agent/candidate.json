@@ -84,7 +84,7 @@
     },
     "se-copilot": {
       "title": "SE Copilot",
-      "one_liner": "An AI assistant plugin that carries a customer evaluation from success criteria to a validated business case.",
+      "one_liner": "An LLM assistant that synthesizes customer calls into prioritized tasks against SOW success criteria using RAG and multiple MCPs, then automates POV stand-up and cost allocation, cutting time-to-value by about two hours per POV.",
       "status": "shipped",
       "visibility": "described-only",
       "links": {}
